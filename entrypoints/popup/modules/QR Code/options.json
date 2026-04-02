@@ -1,0 +1,89 @@
+{
+    "type": "canvas",
+    "shape": "square",
+    "width": 1024,
+    "height": 1024,
+    "data": "AE45HR",
+    "margin": 0,
+    "qrOptions": {
+        "typeNumber": "0",
+        "mode": "Byte",
+        "errorCorrectionLevel": "H"
+    },
+    "imageOptions": {
+        "saveAsBlob": true,
+        "hideBackgroundDots": true,
+        "imageSize": 0,
+        "margin": 0
+    },
+    "dotsOptions": {
+        "type": "square",
+        "color": "#000000",
+        "roundSize": true
+    },
+    "backgroundOptions": {
+        "round": 0,
+        "color": "#ffffff"
+    },
+    "image": "10cc19bd484118dbcd0a7886a38ceddc.png",
+    "dotsOptionsHelper": {
+        "colorType": {
+            "single": true,
+            "gradient": false
+        },
+        "gradient": {
+            "linear": true,
+            "radial": false,
+            "color1": "#6a1a4c",
+            "color2": "#6a1a4c",
+            "rotation": "0"
+        }
+    },
+    "cornersSquareOptions": {
+        "type": "",
+        "color": "#000000"
+    },
+    "cornersSquareOptionsHelper": {
+        "colorType": {
+            "single": true,
+            "gradient": false
+        },
+        "gradient": {
+            "linear": true,
+            "radial": false,
+            "color1": "#000000",
+            "color2": "#000000",
+            "rotation": "0"
+        }
+    },
+    "cornersDotOptions": {
+        "type": "",
+        "color": "#000000"
+    },
+    "cornersDotOptionsHelper": {
+        "colorType": {
+            "single": true,
+            "gradient": false
+        },
+        "gradient": {
+            "linear": true,
+            "radial": false,
+            "color1": "#000000",
+            "color2": "#000000",
+            "rotation": "0"
+        }
+    },
+    "backgroundOptionsHelper": {
+        "colorType": {
+            "single": true,
+            "gradient": false
+        },
+        "gradient": {
+            "linear": true,
+            "radial": false,
+            "color1": "#ffffff",
+            "color2": "#ffffff",
+            "rotation": "0"
+        }
+    }
+}
