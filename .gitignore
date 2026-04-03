@@ -27,4 +27,5 @@ web-ext.config.ts
 
 # Additional
 *.txt
+.env
 .env.*

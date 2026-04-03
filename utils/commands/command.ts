@@ -22,7 +22,7 @@ const commandSchema = z.object({
 const registry: Partial<Record<string, CommandHandler>> = {
   [MEDIA_STATE.MUTE]: async (tabId, value) => {
     await browser.tabs.update(tabId, { muted: Boolean(value) });
-    return { ok: true, type: MESSAGE_TYPES.INTENT.SET, key: MEDIA_STATE.MUTE, value };
+    return { ok: true, type: MESSAGE_TYPES.INTENT.REPORT, key: MEDIA_STATE.MUTE, value };
   },
   [MEDIA_STATE.PLAYBACK]: async (tabId, value) =>
     emitToTab(tabId, { key: MEDIA_STATE.PLAYBACK, value }),
@@ -43,7 +43,7 @@ export const executeCommand = async (msg: unknown) => {
 
   if (!(await doesTabExist(tabId))) throw { ok: false, reason: "Tab does not exist." }
   if (tab && tab !== tabId) throw { ok: false, reason: "Remote/Tab mismatch. Please select tab." }
-  if (!handler) throw { ok: false, reason: "Invalid command key." }
+  if (!handler) throw { ok: false, reason: "Unsupported command key." }
 
   try {
     return await handler(tabId, value)

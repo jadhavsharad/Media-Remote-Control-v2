@@ -1,5 +1,5 @@
 import logger from "@/config/logger";
-import { CHANNELS, supportedPlatforms } from "@/config/constants";
+import { CHANNELS, MESSAGE_TYPES, supportedPlatforms } from "@/config/constants";
 import { receiveMessage, sendMessage } from "@/utils/messaging/message";
 import { Media } from "@/utils/media/media";
 
@@ -12,8 +12,16 @@ export default defineContentScript({
     const cleanup = receiveMessage({
       channel: CHANNELS.TO_CONTENT_SCRIPT, handler: (msg) => {
         const result = Media.execute(msg.key, msg.value);
-        if (result.ok) sendMessage({ channel: CHANNELS.FROM_CONTENT_SCRIPT, payload: { key: msg.key, value: msg.value } });
-        logger.debug("Command:", msg.key, "→", result.ok ? "OK" : result.reason);
+        if (result.ok)
+          sendMessage({
+            channel: CHANNELS.FROM_CONTENT_SCRIPT,
+            payload: {
+              type: MESSAGE_TYPES.STATE_UPDATE,
+              intent: MESSAGE_TYPES.INTENT.REPORT,
+              key: msg.key,
+              value: msg.value
+            }
+          });
       },
     });
 

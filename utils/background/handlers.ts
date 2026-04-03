@@ -6,7 +6,7 @@ import { executeCommand } from "@/utils/commands/command";
 import { isProd } from "@/config/config";
 import { forwardToOffscreen } from "./offscreen";
 import { getPlatformInfo } from "./platform";
-import { getMediaList } from "./tabs";
+import { isMediaUrl } from "../validators/validators";
 
 
 // SHARED: RESET STATE ON DISCONNECT
@@ -14,11 +14,6 @@ const onDisconnect = () => {
   isSocketConnected.setValue(false)
   sessionIdentity.setValue(null)
   Remotes.clear()
-}
-
-// SHARED: SYNC MEDIA LIST TO OFFSCREEN → SERVER
-const syncMediaList = async () => {
-  forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_LIST, tabs: await getMediaList() })
 }
 
 // RUNS WHEN SOCKET OPENS
@@ -63,7 +58,7 @@ export const handleOffScreenMessages = async (msg: any) => {
     case MESSAGE_TYPES.HOST_REGISTERED:
       const result = await onHostRegistered(msg)
       logger.info("[HOST REGISTERED]:", result)
-      if (isProd) await syncMediaList()
+      if (isProd) await Media.sendList()
       break;
     case MESSAGE_TYPES.PAIRING_KEY:
       await pairingKeyExpiry.setValue(msg.ttl)
@@ -73,7 +68,7 @@ export const handleOffScreenMessages = async (msg: any) => {
     // TODO: NOTIFY FROM SERVER EACH TIME A REMOTE JOINS OR ON HOST RECONNECTS OR ON REMOTE RECONNECTS
     case MESSAGE_TYPES.REMOTE_JOINED:
       await Remotes.add(msg.remoteId, Date.now(), "generic")
-      await syncMediaList()
+      await Media.sendList()
       //? MAYBE SEND ACTIVE TAB ID AS WELL - REMOTE SPECIFIC (NEEDS TO IMPLEMENT IN SERVER AND CLIENT AS WELL)
       break;
     case MESSAGE_TYPES.SELECT_ACTIVE_TAB:
@@ -99,6 +94,27 @@ export const handlePopupMessages = async (msg: any) => {
 }
 
 // CONTENT SCRIPT MESSAGES
-export const handleContentScriptMessages = async (msg: { key: string, value: any }) => {
-  logger.debug("[CONTENT REPORT]:", msg.key, "→", msg.value);
+export const handleContentScriptMessages = async (msg: any) => {
+  logger.debug("[CONTENT REPORT]:", msg);
+}
+
+
+export const Media = {
+  sendList: async () => {
+    forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_LIST, tabs: await Media.getList() })
+  },
+
+  // TODO: ENRICH WITH MEDIA INFO [PLAYING, PAUSED, STOPPED, VOLUME, MUTE,]
+  getList: async () => {
+    const tabs = await browser.tabs.query({});
+    return tabs
+      .filter((tab) => isMediaUrl(tab.url))
+      .map((tab) => ({
+        tabId: tab.id,
+        title: tab.title || "Untitled",
+        url: tab.url,
+        favIconUrl: tab.favIconUrl || "",
+        muted: tab.mutedInfo?.muted ?? false,
+      }));
+  },
 }

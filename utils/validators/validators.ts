@@ -1,11 +1,5 @@
-import { MEDIA_STATE, MESSAGE_TYPES, CHANNELS, supportedPlatforms } from "@/config/constants";
-import logger from "@/config/logger";
+import { supportedPlatforms } from "@/config/constants";
 import { browser } from "wxt/browser"
-
-// CHECK FOR VALID MEDIA STATE
-export const isMediaState = (key: string) => {
-    return Object.values(MEDIA_STATE).includes(key);
-}
 
 // CHECK FOR VALID MEDIA ELEMENT
 export const isValidMedia = (media: HTMLMediaElement) => {
@@ -15,16 +9,6 @@ export const isValidMedia = (media: HTMLMediaElement) => {
         (!(media instanceof HTMLVideoElement) || !media.disablePictureInPicture) &&
         media.readyState >= 2
     );
-}
-
-// CHECK FOR VALID MESSAGE TYPE
-export const isValidMessage = (type: string) => {
-    return Object.values(MESSAGE_TYPES).includes(type);
-}
-
-// CHECK FOR VALID CHANNEL
-export const isValidChannel = (channel: string) => {
-    return Object.values(CHANNELS).includes(channel);
 }
 
 // CHECK FOR TAB EXIST
@@ -37,7 +21,6 @@ export const doesTabExist = async (tabId: number) => {
         return false;
     }
 }
-
 
 // CHECK FOR MEDIA URL
 export const isMediaUrl = (url: string | undefined): boolean => {

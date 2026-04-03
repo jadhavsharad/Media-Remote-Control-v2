@@ -6,9 +6,7 @@ export const MESSAGE_TYPES = {
   PAIRING_KEY_REQUEST: "init.pairing_key_request", // CHECK
   PAIRING_KEY: "init.pairing_key",
   PAIRING_KEY_VALID: "init.pairing_key_valid",
-  EXCHANGE_PAIR_KEY: "init.exchange_pair_key",
-  PAIR_SUCCESS: "init.pair_success",
-  PAIR_FAILED: "init.pair_failed",
+
 
   // session
   VALIDATE_SESSION: "session.validate",
@@ -29,30 +27,23 @@ export const MESSAGE_TYPES = {
 
   // media
   MEDIA_LIST: "media.list", // CHECK
-  SELECT_ACTIVE_TAB: "media.select_tab",
+  SELECT_ACTIVE_TAB: "media.select_tab", // CHECK
 
   // controls
-  STATE_UPDATE: "control.state_update",
+  STATE_UPDATE: "control.state_update", // CHECK
   INTENT: {
-    SET: "control.set",
-    REPORT: "control.report"
+    SET: "control.set", // CHECK
+    REPORT: "control.report" // CHECK
   },
-
-  // script
-  SCRIPT_INJECTION_FAIL: "script.injection.failed",
-  REINJECTION_FAILED: "script.reinjection.failed" // For popup
 };
 
 /* -------------------- CHANNELS -------------------- */
 export const CHANNELS = {
-  TO_SERVER: "send.to.server",
-  TO_BACKGROUND: "send.to.background",
-  TO_CONTENT_SCRIPT: "send.to.content_script",
+  TO_CONTENT_SCRIPT: "send.to.content_script", // CHECK
   TO_POPUP: "send.to.popup", // CHECK
   TO_OFFSCREEN: "send.to.offscreen", // CHECK
 
-  FROM_SERVER: "receive.from.server",
-  FROM_BACKGROUND: "receive.from.background", // CHECK
+  FROM_BACKGROUND: "receive.from.background", 
   FROM_CONTENT_SCRIPT: "receive.from.content_script",
   FROM_POPUP: "receive.from.popup", // CHECK
   FROM_OFFSCREEN: "receive.from.offscreen", // CHECK
@@ -66,15 +57,6 @@ export const MEDIA_STATE = {
   TITLE: "title",             // values: string
   VOLUME: "volume",           // values: number (0-100)
 } ;
-
-/* -------------------- POPUP ACTIONS -------------------- */
-export const POPUP_ACTIONS = {
-  GET_STATUS: "popup.get_status",
-  REQUEST_CODE: "popup.request_code",
-  DISCONNECT: "popup.disconnect",
-  RECONNECT: "popup.reconnect",
-  PAIR_CODE_RECEIVED: "popup.pair_code_received"
-};
 
 export const supportedPlatforms = [
   "youtube",

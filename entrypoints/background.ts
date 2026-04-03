@@ -3,14 +3,7 @@ import { isSocketConnected } from "@/utils/storage/storage";
 import { receiveMessage } from "@/utils/messaging/message";
 import { updateBadge } from "@/utils/background/badge";
 import { setupOffscreenDocument } from "@/utils/background/offscreen";
-import { handleOffScreenMessages, handlePopupMessages, handleContentScriptMessages } from "@/utils/background/handlers";
-import { registerTabListeners } from "@/utils/background/tabs";
-
-/*
- ! DO NOT INJECT ON STARTUP;
- ! DO NOT ATTEMPT REINJECTION ON SENDTOTABSAFE;
- ! DO NOT INJECT ON INSTALLED;
- */
+import { handleOffScreenMessages, handlePopupMessages, handleContentScriptMessages, Media } from "@/utils/background/handlers";
 
 export default defineBackground(() => {
 
@@ -31,5 +24,19 @@ export default defineBackground(() => {
   receiveMessage({ channel: CHANNELS.FROM_CONTENT_SCRIPT, handler: async (msg) => { await handleContentScriptMessages(msg) } });
 
   // TAB LISTENERS
-  registerTabListeners();
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (changeInfo.status === "complete" || changeInfo.url) {
+      // TODO: SEND UPDATED TAB TO OFFSCREEN
+    }
+  });
+
+  browser.tabs.onRemoved.addListener(async (tabId) => {
+    // TODO: SEND REMOVED TABID TO OFFSCREEN
+    Media.sendList()
+  });
+
+  browser.tabs.onCreated.addListener(async (tab) => {
+    // TODO: SEND CREATED TAB TO OFFSCREEN
+    Media.sendList()
+  });
 });
