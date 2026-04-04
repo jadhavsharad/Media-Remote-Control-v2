@@ -57,6 +57,7 @@ export const MEDIA_STATE = {
   TITLE: "title",             // values: string
   VOLUME: "volume",           // values: number (0-100)
   ENDED: "ended",             // values: true, false
+  METADATA: "metadata",       // values: true, false
 } ;
 
 export const supportedPlatforms = [

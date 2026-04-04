@@ -136,6 +136,18 @@ const utils = {
     }, 1500);
   },
 
+  metadata: () => {
+    return {
+      playback: navigator.mediaSession.playbackState,
+      info: {
+        title: navigator.mediaSession.metadata?.title || 'Unknown',
+        artist: navigator.mediaSession.metadata?.artist || 'Unknown',
+        album: navigator.mediaSession.metadata?.album || 'Unknown',
+        artwork: navigator.mediaSession.metadata?.artwork?.[navigator.mediaSession.metadata?.artwork.length - 1].src || 'Unknown',
+      }
+    }
+  }
+
 }
 
 const listeners = {
@@ -143,8 +155,8 @@ const listeners = {
     if (state.currentMedia === media) return;
     listeners.detach()
     state.currentMedia = media;
-    media.addEventListener("play", event.play)
-    media.addEventListener("pause", event.pause)
+    media.addEventListener("play", event.playback)
+    media.addEventListener("pause", event.playback)
     media.addEventListener("volumechange", event.volumechange)
     media.addEventListener("ended", event.ended)
     // media.addEventListener("timeupdate", event.timeupdate)
@@ -154,8 +166,8 @@ const listeners = {
 
   detach: () => {
     if (!state.currentMedia) return;
-    state.currentMedia?.removeEventListener("play", event.play)
-    state.currentMedia?.removeEventListener("pause", event.pause)
+    state.currentMedia?.removeEventListener("play", event.playback)
+    state.currentMedia?.removeEventListener("pause", event.playback)
     state.currentMedia?.removeEventListener("volumechange", event.volumechange)
     state.currentMedia?.removeEventListener("ended", event.ended)
     // state.currentMedia?.removeEventListener("timeupdate", event.timeupdate)
@@ -173,25 +185,23 @@ const report = {
         type: MESSAGE_TYPES.STATE_UPDATE,
         intent: MESSAGE_TYPES.INTENT.REPORT,
         key,
-        value
+        value,
+        ...utils.metadata().info
       }
     })
   },
   All: () => {
     if (!state.currentMedia) return;
-    report.Once(MEDIA_STATE.PLAYBACK, state.currentMedia.paused ? "PAUSED" : "PLAYING")
-    report.Once(MEDIA_STATE.VOLUME, state.currentMedia.volume)
-    // report.Once(MEDIA_STATE.TIME, state.currentMedia?.currentTime)
-    // report.Once(MEDIA_STATE.DURATION, state.currentMedia?.duration)
+    event.playback()
+    event.volumechange()
+    // event.timeupdate()
+    // event.durationchange()
   }
 }
 
 const event = {
-  play() {
-    report.Once(MEDIA_STATE.PLAYBACK, "PLAYING")
-  },
-  pause() {
-    report.Once(MEDIA_STATE.PLAYBACK, "PAUSED")
+  playback() {
+    report.Once(MEDIA_STATE.PLAYBACK, state.currentMedia?.paused ? "PAUSED" : "PLAYING")
   },
   volumechange() {
     report.Once(MEDIA_STATE.VOLUME, state.currentMedia?.volume)
