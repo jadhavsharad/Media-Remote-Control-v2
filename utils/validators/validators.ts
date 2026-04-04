@@ -6,7 +6,6 @@ export const isValidMedia = (media: HTMLMediaElement) => {
     return (
         (media instanceof HTMLVideoElement || media instanceof HTMLAudioElement) &&
         media.isConnected &&
-        (!(media instanceof HTMLVideoElement) || !media.disablePictureInPicture) &&
         media.readyState >= 2
     );
 }

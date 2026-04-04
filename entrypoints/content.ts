@@ -5,28 +5,23 @@ import { Media } from "@/utils/media/media";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
+  allFrames: true,
   main(ctx) {
     const hostname = window.location.hostname;
     const isSupported = supportedPlatforms.some(p => hostname.includes(p));
     if (!isSupported) return;
-    const cleanup = receiveMessage({
-      channel: CHANNELS.TO_CONTENT_SCRIPT, handler: (msg) => {
-        const result = Media.execute(msg.key, msg.value);
-        if (result.ok)
-          sendMessage({
-            channel: CHANNELS.FROM_CONTENT_SCRIPT,
-            payload: {
-              type: MESSAGE_TYPES.STATE_UPDATE,
-              intent: MESSAGE_TYPES.INTENT.REPORT,
-              key: msg.key,
-              value: msg.value
-            }
-          });
+
+    Media.init()
+
+    const messageListener = receiveMessage({
+      channel: CHANNELS.TO_CONTENT_SCRIPT, handler: (msg, _, sendResponse) => {
+         Media.execute(msg.key, msg.value);
       },
     });
 
     ctx.onInvalidated(() => {
-      cleanup();
+      messageListener();
+      Media.destroy()
       logger.debug("Content script invalidated:", hostname);
     });
   },

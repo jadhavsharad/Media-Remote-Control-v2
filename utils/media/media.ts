@@ -1,6 +1,16 @@
-import { MEDIA_STATE } from "@/config/constants";
+import { CHANNELS, MEDIA_STATE, MESSAGE_TYPES } from "@/config/constants";
 import { isValidMedia } from "@/utils/validators/validators";
 import logger from "@/config/logger";
+import { sendMessage } from "../messaging/message";
+
+const state = {
+  currentMedia: null as HTMLMediaElement | null, // CHECK
+  discovering: false as boolean, // CHECK
+  observer: null as MutationObserver | null, // CHECK
+  mediaContainer: null as HTMLElement | null,
+  interval: null as ReturnType<typeof setInterval> | null, // CHECK
+  debounce: null as ReturnType<typeof setTimeout> | null,
+}
 
 // COMMAND HANDLERS — KEYED BY MEDIA_STATE
 const handlers: Record<string, (media: HTMLMediaElement, value: any) => void> = {
@@ -36,41 +46,163 @@ const handlers: Record<string, (media: HTMLMediaElement, value: any) => void> = 
   },
 };
 
-// MEDIA UTILITY — FIND ELEMENTS AND EXECUTE COMMANDS
+// MEDIA UTILITY — FIND, OBSERVE AND EXECUTE COMMANDS
 export const Media = {
+  init(): void {
+    if (state.discovering) return;
+    state.discovering = true;
+    state.observer = new MutationObserver(utils.debounced);
+    Media.observer(document.body);
+    state.interval = setInterval(Media.find, 10000);
+  },
 
-  // FIND THE BEST MEDIA ELEMENT ON THE PAGE (returns null if none found)
-  find(): HTMLMediaElement | null {
+  find(): boolean | null {
     const elements = Array
       .from(document.querySelectorAll<HTMLMediaElement>("video, audio"))
       .filter(isValidMedia);
 
-    if (!elements.length) return null;
+    if (!elements.length) {
+      listeners.detach();
+      state.observer?.disconnect()
+      state.mediaContainer = null;
+      Media.observer(document.body);
+      return null;
+    };
 
-    // PRIORITY: currently playing (with progress) > first valid element
-    return elements.find(el => !el.paused && el.currentTime > 0) || elements[0];
+    const media = elements.find(el => !el.paused && el.currentTime > 0) || elements[0];
+    listeners.attach(media);
+
+    const container = media.closest('div') || media.parentElement;
+
+    if (container && state.mediaContainer !== container) {
+      logger.debug("New media container found");
+      state.observer?.disconnect()
+      state.mediaContainer = container;
+      Media.observer(container);
+      logger.debug("Media container updated");
+    }
+    return true
   },
-
-  // EXECUTE A COMMAND ON THE BEST AVAILABLE MEDIA
+  observer: (container: HTMLElement): void => {
+    state.observer?.observe(container, {
+      childList: true,
+      subtree: true,
+    });
+  },
   execute(key: string, value: unknown): { ok: boolean; reason: string } {
-    const media = Media.find();
-    if (!media) {
+    if (!state.currentMedia?.isConnected) {
       logger.debug("No media element found on page");
       return { ok: false, reason: "No media found" };
     }
 
     const handler = handlers[key];
+
     if (!handler) {
       logger.debug("Unknown command key:", key);
       return { ok: false, reason: `Unknown key: ${key}` };
     }
 
     try {
-      handler(media, value);
+      handler(state.currentMedia, value);
       return { ok: true, reason: "Command executed successfully" };
     } catch (error: any) {
       logger.debug("Command execution failed:", error);
       return { ok: false, reason: error?.reason ?? "Execution failed" };
     }
   },
+  destroy(): void {
+    // 1. Detach event listeners from media
+    listeners.detach();
+    // 2. Kill the observer
+    state.observer?.disconnect();
+    state.observer = null;
+    // 3. Kill all async timers
+    if (state.interval) clearInterval(state.interval);
+    state.interval = null;
+    if (state.debounce) clearTimeout(state.debounce);
+    state.debounce = null;
+    // 4. Reset flags and pointers
+    state.discovering = false;
+    state.mediaContainer = null;
+  }
 };
+
+const utils = {
+  debounced: () => {
+    if (state.debounce) clearTimeout(state.debounce);
+    state.debounce = setTimeout(() => {
+      state.debounce = null;
+      Media.find();
+    }, 1500);
+  },
+
+}
+
+const listeners = {
+  attach: (media: HTMLMediaElement) => {
+    if (state.currentMedia === media) return;
+    listeners.detach()
+    state.currentMedia = media;
+    media.addEventListener("play", event.play)
+    media.addEventListener("pause", event.pause)
+    media.addEventListener("volumechange", event.volumechange)
+    media.addEventListener("ended", event.ended)
+    // media.addEventListener("timeupdate", event.timeupdate)
+    // media.addEventListener("durationchange", event.durationchange)
+    report.All()
+  },
+
+  detach: () => {
+    if (!state.currentMedia) return;
+    state.currentMedia?.removeEventListener("play", event.play)
+    state.currentMedia?.removeEventListener("pause", event.pause)
+    state.currentMedia?.removeEventListener("volumechange", event.volumechange)
+    state.currentMedia?.removeEventListener("ended", event.ended)
+    // state.currentMedia?.removeEventListener("timeupdate", event.timeupdate)
+    // state.currentMedia?.removeEventListener("durationchange", event.durationchange)
+    state.currentMedia = null;
+    report.Once(MEDIA_STATE.PLAYBACK, "IDLE");
+  },
+}
+
+const report = {
+  Once: (key: string, value: unknown) => {
+    sendMessage({
+      channel: CHANNELS.FROM_CONTENT_SCRIPT,
+      payload: {
+        type: MESSAGE_TYPES.STATE_UPDATE,
+        intent: MESSAGE_TYPES.INTENT.REPORT,
+        key,
+        value
+      }
+    })
+  },
+  All: () => {
+    if (!state.currentMedia) return;
+    report.Once(MEDIA_STATE.PLAYBACK, state.currentMedia.paused ? "PAUSED" : "PLAYING")
+    report.Once(MEDIA_STATE.VOLUME, state.currentMedia.volume)
+    // report.Once(MEDIA_STATE.TIME, state.currentMedia?.currentTime)
+    // report.Once(MEDIA_STATE.DURATION, state.currentMedia?.duration)
+  }
+}
+
+const event = {
+  play() {
+    report.Once(MEDIA_STATE.PLAYBACK, "PLAYING")
+  },
+  pause() {
+    report.Once(MEDIA_STATE.PLAYBACK, "PAUSED")
+  },
+  volumechange() {
+    report.Once(MEDIA_STATE.VOLUME, state.currentMedia?.volume)
+  },
+  timeupdate() {
+    report.Once(MEDIA_STATE.TIME, state.currentMedia?.currentTime)
+  },
+  durationchange() {
+    report.Once(MEDIA_STATE.DURATION, state.currentMedia?.duration)
+  },
+  ended() {
+    report.Once(MEDIA_STATE.ENDED, true)
+  }
+}
