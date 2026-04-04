@@ -140,10 +140,10 @@ const utils = {
     return {
       playback: navigator.mediaSession.playbackState,
       info: {
-        title: navigator.mediaSession.metadata?.title || 'Unknown',
-        artist: navigator.mediaSession.metadata?.artist || 'Unknown',
-        album: navigator.mediaSession.metadata?.album || 'Unknown',
-        artwork: navigator.mediaSession.metadata?.artwork?.[navigator.mediaSession.metadata?.artwork.length - 1].src || 'Unknown',
+        mediaTitle: navigator.mediaSession.metadata?.title || 'Unknown',
+        mediaArtist: navigator.mediaSession.metadata?.artist || 'Unknown',
+        mediaAlbum: navigator.mediaSession.metadata?.album || 'Unknown',
+        mediaArtwork: navigator.mediaSession.metadata?.artwork?.[navigator.mediaSession.metadata?.artwork.length - 1].src || 'Unknown',
       }
     }
   }
