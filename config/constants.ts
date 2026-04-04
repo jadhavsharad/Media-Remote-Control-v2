@@ -56,6 +56,7 @@ export const MEDIA_STATE = {
   DURATION: "duration",       // values: number (seconds)
   TITLE: "title",             // values: string
   VOLUME: "volume",           // values: number (0-100)
+  ENDED: "ended",             // values: true, false
 } ;
 
 export const supportedPlatforms = [
