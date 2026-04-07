@@ -1,7 +1,7 @@
 import { CHANNELS, MEDIA_STATE, MESSAGE_TYPES } from "@/config/constants";
 import { Remotes } from "../storage/remote";
 import logger from "@/config/logger";
-import { doesTabExist, isMediaUrl } from "../validators/validators";
+import { doesTabExist } from "../validators/validators";
 import { z } from "zod";
 
 // TYPE FOR COMMAND HANDLER

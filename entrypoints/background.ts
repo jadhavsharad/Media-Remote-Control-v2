@@ -3,7 +3,11 @@ import { isSocketConnected } from "@/utils/storage/storage";
 import { receiveMessage } from "@/utils/messaging/message";
 import { updateBadge } from "@/utils/background/badge";
 import { setupOffscreenDocument } from "@/utils/background/offscreen";
-import { handleOffScreenMessages, handlePopupMessages, handleContentScriptMessages, Media } from "@/utils/background/handlers";
+import { TabCache } from "@/utils/storage/tabs";
+import logger from "@/config/logger";
+import { mediaTab } from "@/utils/validators/validators";
+import { receive } from "@/utils/background/handlers";
+
 
 export default defineBackground(() => {
 
@@ -17,26 +21,33 @@ export default defineBackground(() => {
   isSocketConnected.watch((isConnected) => {
     updateBadge(isConnected);
   });
-
   // MESSAGE HANDLERS
-  receiveMessage({ channel: CHANNELS.FROM_OFFSCREEN, handler: async (msg) => { await handleOffScreenMessages(msg) } });
-  receiveMessage({ channel: CHANNELS.FROM_POPUP, handler: async (msg) => { await handlePopupMessages(msg) } });
-  receiveMessage({ channel: CHANNELS.FROM_CONTENT_SCRIPT, handler: async (msg) => { await handleContentScriptMessages(msg) } });
+  receiveMessage({ channel: CHANNELS.FROM_OFFSCREEN, handler: async (msg) => { await receive.offscreen(msg) } });
+  receiveMessage({ channel: CHANNELS.FROM_POPUP, handler: async (msg) => { await receive.popup(msg) } });
+  receiveMessage({ channel: CHANNELS.FROM_CONTENT_SCRIPT, handler: async (msg, sender) => { await receive.contentScript(msg, sender) } });
 
   // TAB LISTENERS
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete" || changeInfo.url) {
-      // TODO: SEND UPDATED TAB TO OFFSCREEN
+    if (!mediaTab(tab.url)) return;
+    if (changeInfo.status === "complete" || changeInfo.url || changeInfo.title || changeInfo.mutedInfo !== undefined) {
+      TabCache.setTabMeta(tabId, {
+        tabId: tabId,
+        title: tab.title,
+        url: tab.url,
+        favIconUrl: tab.favIconUrl,
+        muted: tab.mutedInfo?.muted,
+      }).then(async (res) => {
+        logger.debug("Tab updated:", await TabCache.getMeta(tabId))
+      }).catch((error) => {
+        logger.error("Error updating tab:", error)
+      })
     }
   });
 
   browser.tabs.onRemoved.addListener(async (tabId) => {
     // TODO: SEND REMOVED TABID TO OFFSCREEN
-    Media.sendList()
   });
-
   browser.tabs.onCreated.addListener(async (tab) => {
     // TODO: SEND CREATED TAB TO OFFSCREEN
-    Media.sendList()
   });
 });

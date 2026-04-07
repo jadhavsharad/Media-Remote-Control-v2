@@ -22,13 +22,7 @@ export const doesTabExist = async (tabId: number) => {
 }
 
 // CHECK FOR MEDIA URL
-export const isMediaUrl = (url: string | undefined): boolean => {
-    if (!url) return false;
-
-    try {
-        const { hostname } = new URL(url);
-        return supportedPlatforms.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`) || hostname.includes(`.${domain}`));
-    } catch {
-        return false;
-    }
+export const mediaTab = (hostname: string | undefined): boolean => {
+    if (!hostname) return false;
+    return supportedPlatforms.some((domain) => hostname.includes(domain));
 }
