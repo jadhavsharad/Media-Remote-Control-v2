@@ -194,6 +194,7 @@ const report = {
     if (!state.currentMedia) return;
     event.playback()
     event.volumechange()
+    event.ended()
     // event.timeupdate()
     // event.durationchange()
   }
@@ -202,6 +203,7 @@ const report = {
 const event = {
   playback() {
     report.Once(MEDIA_STATE.PLAYBACK, state.currentMedia?.paused ? "PAUSED" : "PLAYING")
+    event.ended();
   },
   volumechange() {
     report.Once(MEDIA_STATE.VOLUME, state.currentMedia?.volume)
@@ -213,6 +215,6 @@ const event = {
     report.Once(MEDIA_STATE.DURATION, state.currentMedia?.duration)
   },
   ended() {
-    report.Once(MEDIA_STATE.ENDED, true)
+    report.Once(MEDIA_STATE.ENDED, state.currentMedia?.ended)
   }
 }

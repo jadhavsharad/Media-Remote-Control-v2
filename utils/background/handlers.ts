@@ -3,10 +3,11 @@ import { MESSAGE_TYPES } from "@/config/constants";
 import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry } from "@/utils/storage/storage";
 import { Remotes } from "@/utils/storage/remote";
 import { executeCommand } from "@/utils/commands/command";
-import { isProd } from "@/config/config";
+
 import { forwardToOffscreen } from "./offscreen";
 import { getPlatformInfo } from "./platform";
 import { TabCache } from "../storage/tabs";
+import { mediaTab } from "@/utils/validators/validators";
 
 const Socket = {
   onOpen: async () => {
@@ -52,8 +53,7 @@ export const receive = {
       // TODO: NOTIFY FROM SERVER EACH TIME A REMOTE JOINS OR ON HOST RECONNECTS OR ON REMOTE RECONNECTS
       case MESSAGE_TYPES.REMOTE_JOINED:
         await Remotes.add(msg.remoteId, Date.now(), "generic")
-        // await Media.sendList()
-        //? MAYBE SEND ACTIVE TAB ID AS WELL - REMOTE SPECIFIC (NEEDS TO IMPLEMENT IN SERVER AND CLIENT AS WELL)
+        Notify.all()
         break;
       case MESSAGE_TYPES.SELECT_ACTIVE_TAB:
         Remotes.setTab(msg.remoteId, msg.tabId).then(async (res) => {
@@ -75,10 +75,48 @@ export const receive = {
     forwardToOffscreen(msg)
   },
   contentScript: async (msg: any, sender: any) => {
-    TabCache.setMediaMeta(sender.tab.id, msg).then(async (res) => {
-      logger.debug("Media Meta Set: ", await TabCache.getMeta(sender.tab.id))
-    }).catch((error) => {
-      logger.error("Media Meta Set Error: ", error)
-    })
+    const tabId = sender.tab?.id;
+    if (!tabId) return;
+
+    const { type, intent, key, value, ...mediaMeta } = msg;
+    const update = { ...mediaMeta, ...(key !== undefined ? { [key]: value } : {}) };
+
+    const result = await TabCache.setMediaMeta(tabId, update);
+
+    if (!result.ok) {
+      // Tab not registered — auto-register from sender.tab if it's a media tab
+      if (sender.tab?.url && mediaTab(sender.tab.url)) {
+        await TabCache.setTabMeta(tabId, {
+          tabId,
+          title: sender.tab.title,
+          url: sender.tab.url,
+          favIconUrl: sender.tab.favIconUrl,
+          muted: sender.tab.mutedInfo?.muted,
+        });
+        await TabCache.setMediaMeta(tabId, update);
+      } else {
+        return;
+      }
+    }
+
+    Notify.tab(tabId);
   }
+}
+
+export const Notify = {
+  all: debounced(() => {
+    logger.info("[NOTIFY:ALL]", TabCache.getAll());
+    forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_LIST, tabs: TabCache.getAll() });
+  }),
+  tab: debounced(async (tabId: number) => {
+    try {
+      const { data } = await TabCache.getMeta(tabId);
+      forwardToOffscreen({ type: MESSAGE_TYPES.STATE_UPDATE, tab: data });
+      logger.info("[NOTIFY:TAB]", data);
+    } catch { }
+  }),
+  removed: debounced((tabId: number) => {
+    Notify.all()
+    logger.info("[NOTIFY:REMOVED]", tabId);
+  }),
 }
