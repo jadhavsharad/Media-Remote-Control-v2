@@ -3,7 +3,6 @@ import { MESSAGE_TYPES } from "@/config/constants";
 import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry } from "@/utils/storage/storage";
 import { Remotes } from "@/utils/storage/remote";
 import { executeCommand } from "@/utils/commands/command";
-
 import { forwardToOffscreen } from "./offscreen";
 import { getPlatformInfo } from "./platform";
 import { TabCache } from "../storage/tabs";
@@ -103,7 +102,7 @@ export const receive = {
   }
 }
 
-export const Notify = {
+const Notify = {
   all: debounced(() => {
     logger.info("[NOTIFY:ALL]", TabCache.getAll());
     forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_LIST, tabs: TabCache.getAll() });
@@ -119,4 +118,100 @@ export const Notify = {
     Notify.all()
     logger.info("[NOTIFY:REMOVED]", tabId);
   }),
+}
+
+export const listeners = {
+  init: () => {
+    browser.tabs.query({}).then((allTabs) => {
+      const mediaTabs = allTabs.filter(t => mediaTab(t.url));
+      const result = TabCache.sync(mediaTabs.map(t => ({
+        tabId: t.id!,
+        title: t.title,
+        url: t.url,
+        favIconUrl: t.favIconUrl,
+        muted: t.mutedInfo?.muted,
+      })));
+      if (result.added.length || result.removed.length) {
+        logger.debug("Startup sync:", result);
+      }
+    });
+  },
+  tabOnUpdated: () => {
+    browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+      // Tab navigated AWAY from media domain — clean up
+      if (!mediaTab(tab.url)) {
+        if (TabCache.has(tabId)) {
+          await TabCache.removeTab(tabId);
+          Notify.removed(tabId);
+        }
+        return;
+      }
+      // Tab is on a media domain — update metadata
+      if (changeInfo.status === "complete" || changeInfo.url || changeInfo.title || changeInfo.mutedInfo !== undefined) {
+        TabCache.setTabMeta(tabId, {
+          tabId: tabId,
+          title: tab.title,
+          url: tab.url,
+          favIconUrl: tab.favIconUrl,
+          muted: tab.mutedInfo?.muted,
+        }).then(() => {
+          Notify.tab(tabId);
+        }).catch((error) => {
+          logger.error("Error updating tab:", error)
+        })
+      }
+    });
+  },
+
+  tabOnRemoved: () => {
+    browser.tabs.onRemoved.addListener(async (tabId) => {
+      TabCache.removeTab(tabId).then(async () => {
+        Notify.removed(tabId);
+        // Clean up remote contexts pointing to this tab
+        const remotes = await Remotes.getAll();
+        for (const [remoteId, ctx] of Object.entries(remotes)) {
+          if (ctx.tabId === tabId) {
+            await Remotes.setTab(remoteId, null);
+          }
+        }
+      }).catch((error) => {
+        logger.error("Error removing tab:", error)
+      })
+    });
+  },
+
+  tabOnCreated: () => {
+    browser.tabs.onCreated.addListener(async (tab) => {
+      if (tab.id === undefined) return;
+      if (!mediaTab(tab.url)) return;
+
+      TabCache.setTabMeta(tab.id, {
+        tabId: tab.id,
+        title: tab.title,
+        url: tab.url,
+        favIconUrl: tab.favIconUrl,
+        muted: tab.mutedInfo?.muted,
+      }).then(() => {
+        Notify.tab(tab.id!);
+      }).catch((error) => {
+        logger.error("Error creating tab:", error)
+      })
+    });
+  },
+
+  reconciliation: setInterval(async () => {
+    const allTabs = await browser.tabs.query({});
+    const mediaTabs = allTabs.filter(t => mediaTab(t.url));
+    const result = TabCache.sync(mediaTabs.map(t => ({
+      tabId: t.id!,
+      title: t.title,
+      url: t.url,
+      favIconUrl: t.favIconUrl,
+      muted: t.mutedInfo?.muted,
+    })));
+    if (result.added.length || result.removed.length) {
+      logger.debug("Reconciliation drift:", result);
+      Notify.all();
+    }
+  }, 30_000)
 }
