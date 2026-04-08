@@ -1,7 +1,6 @@
 import { CHANNELS, MEDIA_STATE, MESSAGE_TYPES } from "@/config/constants";
 import { Remotes } from "../storage/remote";
-import logger from "@/config/logger";
-import { doesTabExist } from "../validators/validators";
+import { doesTabExist, mediaTab } from "../validators/validators";
 import { z } from "zod";
 
 // TYPE FOR COMMAND HANDLER
@@ -59,6 +58,9 @@ const emitToTab = async <T>(tabId: number, payload: { key: string; value: T }) =
   try {
     await browser.tabs.sendMessage(tabId, message);
   } catch {
+    const tab = await browser.tabs.get(tabId);
+    if (!mediaTab(tab.url)) throw { ok: false, reason: "Not a media tab" };
+
     try {
       await browser.scripting.executeScript({
         target: { tabId },

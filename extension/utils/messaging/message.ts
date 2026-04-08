@@ -1,4 +1,4 @@
-import logger from "@/config/logger";
+
 
 // REUSABLE FUNCTION TO SEND MESSAGES TO SERVER, OFFSCREEN, POPUP, CONTENT SCRIPT
 export const sendMessage = ({ channel, payload }: { channel: string, payload: any }) => {

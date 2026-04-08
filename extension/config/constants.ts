@@ -61,18 +61,23 @@ export const MEDIA_STATE = {
 } ;
 
 export const supportedPlatforms = [
-  "youtube",
-  "netflix",
-  "primevideo",
-  "hotstar",
-  "sonyliv",
-  "amazon",
-  "mxplayer",
-  "vimeo",
-  "jiosaavn",
-  "apple",
-  "spotify",
+  "youtube.com",
+  "netflix.com",
+  "primevideo.com",
+  "hotstar.com",
+  "jiohotstar.com",
+  "sonyliv.com",
+  "amazon.com",
+  "mxplayer.com",
+  "vimeo.com",
+  "jiosaavn.com",
+  "apple.com",
+  "spotify.com",
 ]
+
+export const platforms = supportedPlatforms.map(
+(domain) => `https://*.${domain}/*`
+);
 
 export const activeIcons = {
   "16": "/icon/16.png",

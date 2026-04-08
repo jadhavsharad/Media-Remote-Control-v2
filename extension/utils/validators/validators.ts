@@ -21,8 +21,21 @@ export const doesTabExist = async (tabId: number) => {
     }
 }
 
-// CHECK FOR MEDIA URL
-export const mediaTab = (hostname: string | undefined): boolean => {
+const extractHostname = (input: string): string | null => {
+    try {
+        if (input.includes("://")) return new URL(input).hostname;
+        return input;
+    } catch {
+        return null;
+    }
+}
+export const mediaTab = (input: string | undefined): boolean => {
+    if (!input) return false;
+
+    const hostname = extractHostname(input);
     if (!hostname) return false;
-    return supportedPlatforms.some((domain) => hostname.includes(domain));
+
+    const normalized = hostname.replace(/^www\./, "");
+    return supportedPlatforms.some((domain: string) => normalized === domain || normalized.endsWith(`.${domain}`)
+    );
 }

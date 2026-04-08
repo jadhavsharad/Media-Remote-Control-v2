@@ -1,5 +1,5 @@
 import { defineConfig, defineWebExtConfig } from 'wxt';
-import { supportedPlatforms } from './config/constants';
+import { platforms } from './config/constants';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -7,7 +7,7 @@ export default defineConfig({
   manifest: {
     name: "Media Remote Control",
     permissions: ["tabs", "offscreen", 'storage', "scripting"],
-    host_permissions: ["<all_urls>"],    
+    host_permissions: platforms,    
     
   },
   webExt: defineWebExtConfig({
