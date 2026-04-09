@@ -4,7 +4,7 @@ import fastify from "fastify";
 import { Redis } from "@upstash/redis";
 import logger from "./config/logger";
 import config from "./config/config";
-import router from "./message/router";
+import router from "./router/router";
 import createStore from "./store/store";
 import ConnectionManager from "./connection/connection";
 
