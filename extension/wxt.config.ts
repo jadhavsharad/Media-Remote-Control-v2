@@ -1,5 +1,6 @@
 import { defineConfig, defineWebExtConfig } from 'wxt';
 import { platforms } from './config/constants';
+import tailwindcss from '@tailwindcss/vite';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -8,10 +9,11 @@ export default defineConfig({
     name: "Media Remote Control",
     permissions: ["tabs", "offscreen", 'storage', "scripting"],
     host_permissions: platforms,    
-    
   },
   webExt: defineWebExtConfig({
     disabled: true,
-  })
-
+  }),
+  vite:() => ({
+    plugins: [tailwindcss()],
+  }),
 });

@@ -6,6 +6,7 @@ export const MESSAGE_TYPES = {
   PAIRING_KEY_REQUEST: "init.pairing_key_request", // CHECK
   PAIRING_KEY: "init.pairing_key",
   PAIRING_KEY_VALID: "init.pairing_key_valid",
+  HOST_RESET: "init.host_reset",
 
 
   // session

@@ -1,6 +1,6 @@
 import logger from "@/config/logger";
 import { MESSAGE_TYPES } from "@/config/constants";
-import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry } from "@/utils/storage/storage";
+import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry, pairingKeyCreatedAt } from "@/utils/storage/storage";
 import { Remotes } from "@/utils/storage/remote";
 import { executeCommand } from "@/utils/commands/command";
 import { forwardToOffscreen } from "./offscreen";
@@ -45,8 +45,10 @@ export const receive = {
         // if (isProd) await Media.sendList()
         break;
       case MESSAGE_TYPES.PAIRING_KEY:
-        await pairingKeyExpiry.setValue(msg.ttl)
         await pairingKey.setValue(msg.code)
+        await pairingKeyExpiry.setValue(msg.pairingKeyExpiry).then(async () => {
+          await pairingKeyCreatedAt.setValue(Date.now())
+        })
         break;
 
       // TODO: NOTIFY FROM SERVER EACH TIME A REMOTE JOINS OR ON HOST RECONNECTS OR ON REMOTE RECONNECTS

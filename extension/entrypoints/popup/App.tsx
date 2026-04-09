@@ -20,9 +20,9 @@ const App = () => {
   }
 
   return (
-    <>
+    <div className="bg-black">
       {renderPage()}
-    </>
+    </div>
   )
 }
 

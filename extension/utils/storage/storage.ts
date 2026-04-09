@@ -2,6 +2,8 @@ import { storage } from 'wxt/utils/storage';
 
 export interface Device {
   id: string;
+  browser?: string;
+  modelName?: string;
   platform?: string;
   connectedAt: number;
 }
@@ -11,4 +13,5 @@ export const isSocketConnected = storage.defineItem<boolean>("local:isSocketConn
 export const sessionIdentity = storage.defineItem<string | null>("local:sessionIdentity", { defaultValue: null })
 export const pairingKey = storage.defineItem<string | null>("local:pairingKey", { defaultValue: null })
 export const pairingKeyExpiry = storage.defineItem<number | null>("local:pairingKeyExpiry", { defaultValue: null })
+export const pairingKeyCreatedAt = storage.defineItem<number | null>("local:pairingKeyCreatedAt", { defaultValue: null })
 export const connectedDevices = storage.defineItem<Device[]>("local:connectedDevices", { defaultValue: [] })
