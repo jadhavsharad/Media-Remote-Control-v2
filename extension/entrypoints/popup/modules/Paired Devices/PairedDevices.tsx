@@ -1,4 +1,7 @@
 import { connectedDevices, Device } from "@/utils/storage/storage"
+import { Remotes } from "@/utils/storage/remote"
+import { sendMessage } from "@/utils/messaging/message"
+import { CHANNELS, MESSAGE_TYPES } from "@/config/constants"
 import { useStorageItem } from "../../hooks/useStorageItem"
 import { IoArrowBack } from "react-icons/io5"
 import { LuSmartphone, LuMonitor, LuTablet, LuGlobe, LuCopy, LuCheck, LuTrash2 } from "react-icons/lu"
@@ -6,7 +9,6 @@ import { SiGooglechrome, SiFirefox, SiSafari, SiOpera } from "react-icons/si"
 import { TbBrowser, TbDeviceDesktop } from "react-icons/tb"
 import { RiRemoteControlLine } from "react-icons/ri"
 import { useState } from "react"
-import SAMPLE_DEVICES from "./devices.json"
 
 /** Pick a device-type icon based on platform/os hint */
 const getDeviceIcon = (device: Device) => {
@@ -109,12 +111,7 @@ const DeviceCard = ({ device, onRemove }: { device: Device; onRemove: (id: strin
       </div>
 
       {/* Remove button */}
-      <button
-        onClick={() => onRemove(device.id)}
-        className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-white/5 hover:bg-red-500/15 text-white/40 hover:text-red-400 text-[11px] transition-colors cursor-pointer"
-        aria-label={`Remove device ${device.modelName || device.id}`}
-        title={`Disconnect and remove ${device.modelName || "this device"}`}
-      >
+      <button onClick={() => onRemove(device.id)} className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-white/5 hover:bg-red-500/15 text-white/40 hover:text-red-400 text-[11px] transition-colors cursor-pointer" aria-label={`Remove device ${device.modelName || device.id}`} title={`Disconnect and remove ${device.modelName || "this device"}`}>
         <LuTrash2 className="text-xs" />
         Remove
       </button>
@@ -125,13 +122,14 @@ const DeviceCard = ({ device, onRemove }: { device: Device; onRemove: (id: strin
 const PairedDevices = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
   const [devices, setDevices] = useStorageItem(connectedDevices);
 
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     const updated = (devices || []).filter(d => d.id !== id);
     setDevices(updated);
+    await Remotes.remove(id);
+    sendMessage({ channel: CHANNELS.FROM_POPUP, payload: { type: MESSAGE_TYPES.KICK_REMOTE, remoteId: id } });
   };
 
-  // TODO: Remove SAMPLE_DEVICES fallback after real data is wired
-  const deviceList = devices?.length ? devices : SAMPLE_DEVICES;
+  const deviceList = devices?.length ? devices : [];
   const deviceCount = deviceList.length;
 
   return (

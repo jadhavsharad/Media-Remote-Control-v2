@@ -2,9 +2,9 @@ import { storage } from 'wxt/utils/storage';
 
 export interface Device {
   id: string;
-  browser?: string;
-  modelName?: string;
-  platform?: string;
+  browser: string;
+  modelName: string;
+  platform: string;
   connectedAt: number;
 }
 

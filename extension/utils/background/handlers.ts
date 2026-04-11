@@ -1,6 +1,6 @@
 import logger from "@/config/logger";
 import { MESSAGE_TYPES } from "@/config/constants";
-import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry, pairingKeyCreatedAt } from "@/utils/storage/storage";
+import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry, pairingKeyCreatedAt, connectedDevices } from "@/utils/storage/storage";
 import { Remotes } from "@/utils/storage/remote";
 import { executeCommand } from "@/utils/commands/command";
 import { forwardToOffscreen } from "./offscreen";
@@ -15,15 +15,16 @@ const Socket = {
     const platformInfo = getPlatformInfo();
     forwardToOffscreen({ type: MESSAGE_TYPES.HOST_REGISTER, token, platformInfo })
   },
-  onRegistered: async (msg: { type: string, SESSION_IDENTITY: string, hostToken: string }): Promise<({ ok: boolean })> => {
+  onRegistered: async (msg: { type: string, sessionId: string, hostToken: string }): Promise<({ ok: boolean })> => {
     await hostToken.setValue(msg.hostToken)
-    await sessionIdentity.setValue(msg.SESSION_IDENTITY)
+    await sessionIdentity.setValue(msg.sessionId)
     return { ok: true }
   },
   onClose: () => {
     isSocketConnected.setValue(false)
     sessionIdentity.setValue(null)
     Remotes.clear()
+    connectedDevices.setValue([])
   }
 }
 
@@ -46,29 +47,48 @@ export const receive = {
         break;
       case MESSAGE_TYPES.PAIRING_KEY:
         await pairingKey.setValue(msg.code)
-        await pairingKeyExpiry.setValue(msg.pairingKeyExpiry).then(async () => {
-          await pairingKeyCreatedAt.setValue(Date.now())
-        })
+        await pairingKeyExpiry.setValue(msg.pairingKeyExpiry)
+        await pairingKeyCreatedAt.setValue(Date.now())
         break;
 
-      // TODO: NOTIFY FROM SERVER EACH TIME A REMOTE JOINS OR ON HOST RECONNECTS OR ON REMOTE RECONNECTS
       case MESSAGE_TYPES.REMOTE_JOINED:
-        await Remotes.add(msg.remoteId, Date.now(), "generic")
+        logger.info("Remote joined:", msg)
+        if (!msg.id || !msg.sessionId) {
+          logger.error("Remote joined message missing required fields")
+          return;
+        }
+
+        if (msg.sessionId !== await sessionIdentity.getValue()) {
+          logger.error("Remote is not registered for this session")
+          return;
+        }
+
+        if (msg.invalidateCode) {
+          await pairingKey.removeValue()
+          await pairingKeyExpiry.removeValue()
+          await pairingKeyCreatedAt.removeValue()
+        }
+
+        await navigator.locks.request("connectedDevices", async () => {
+          await Remotes.add(msg.id)
+          const currentDevices = await connectedDevices.getValue() || [];
+          const filter = currentDevices.filter(device => device.id !== msg.id);
+          await connectedDevices.setValue([...filter, { id: msg.id, browser: msg.browser, modelName: msg.modelName, platform: msg.platform, connectedAt: msg.connectedAt }]);
+        })
+
         Notify.all()
         break;
       case MESSAGE_TYPES.SELECT_ACTIVE_TAB:
-        Remotes.setTab(msg.remoteId, msg.tabId).then(async (res) => {
-          // TODO: SEND CONFIRMATION TO CLIENT
-          logger.debug("[TAB SET]: ", res)
-        })
+        const tabSetResult = await Remotes.setTab(msg.remoteId, msg.tabId);
+        logger.debug("[TAB SET]: ", tabSetResult)
         break;
       case MESSAGE_TYPES.STATE_UPDATE:
-        await executeCommand(msg).then((res) => {
-          // TODO: SEND CONFIRMATION TO CLIENT
-          logger.debug("[COMMAND RESPONSE]: ", res)
-        }).catch((error) => {
+        try {
+          const cmdResult = await executeCommand(msg);
+          logger.debug("[COMMAND RESPONSE]: ", cmdResult)
+        } catch (error) {
           logger.debug("ERROR: ", error)
-        })
+        }
         break;
     }
   },
@@ -123,20 +143,19 @@ const Notify = {
 }
 
 export const listeners = {
-  init: () => {
-    browser.tabs.query({}).then((allTabs) => {
-      const mediaTabs = allTabs.filter(t => mediaTab(t.url));
-      const result = TabCache.sync(mediaTabs.map(t => ({
-        tabId: t.id!,
-        title: t.title,
-        url: t.url,
-        favIconUrl: t.favIconUrl,
-        muted: t.mutedInfo?.muted,
-      })));
-      if (result.added.length || result.removed.length) {
-        logger.debug("Startup sync:", result);
-      }
-    });
+  init: async () => {
+    const allTabs = await browser.tabs.query({});
+    const mediaTabs = allTabs.filter(t => mediaTab(t.url));
+    const result = TabCache.sync(mediaTabs.map(t => ({
+      tabId: t.id!,
+      title: t.title,
+      url: t.url,
+      favIconUrl: t.favIconUrl,
+      muted: t.mutedInfo?.muted,
+    })));
+    if (result.added.length || result.removed.length) {
+      logger.debug("Startup sync:", result);
+    }
   },
   tabOnUpdated: () => {
     browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
@@ -150,24 +169,26 @@ export const listeners = {
       }
       // Tab is on a media domain — update metadata
       if (changeInfo.status === "complete" || changeInfo.url || changeInfo.title || changeInfo.mutedInfo !== undefined) {
-        TabCache.setTabMeta(tabId, {
-          tabId: tabId,
-          title: tab.title,
-          url: tab.url,
-          favIconUrl: tab.favIconUrl,
-          muted: tab.mutedInfo?.muted,
-        }).then(() => {
+        try {
+          await TabCache.setTabMeta(tabId, {
+            tabId: tabId,
+            title: tab.title,
+            url: tab.url,
+            favIconUrl: tab.favIconUrl,
+            muted: tab.mutedInfo?.muted,
+          });
           Notify.tab(tabId);
-        }).catch((error) => {
+        } catch (error) {
           logger.error("Error updating tab:", error)
-        })
+        }
       }
     });
   },
 
   tabOnRemoved: () => {
     browser.tabs.onRemoved.addListener(async (tabId) => {
-      TabCache.removeTab(tabId).then(async () => {
+      try {
+        await TabCache.removeTab(tabId);
         Notify.removed(tabId);
         // Clean up remote contexts pointing to this tab
         const remotes = await Remotes.getAll();
@@ -176,9 +197,9 @@ export const listeners = {
             await Remotes.setTab(remoteId, null);
           }
         }
-      }).catch((error) => {
+      } catch (error) {
         logger.error("Error removing tab:", error)
-      })
+      }
     });
   },
 
@@ -187,17 +208,18 @@ export const listeners = {
       if (tab.id === undefined) return;
       if (!mediaTab(tab.url)) return;
 
-      TabCache.setTabMeta(tab.id, {
-        tabId: tab.id,
-        title: tab.title,
-        url: tab.url,
-        favIconUrl: tab.favIconUrl,
-        muted: tab.mutedInfo?.muted,
-      }).then(() => {
+      try {
+        await TabCache.setTabMeta(tab.id, {
+          tabId: tab.id,
+          title: tab.title,
+          url: tab.url,
+          favIconUrl: tab.favIconUrl,
+          muted: tab.mutedInfo?.muted,
+        });
         Notify.tab(tab.id!);
-      }).catch((error) => {
+      } catch (error) {
         logger.error("Error creating tab:", error)
-      })
+      }
     });
   },
 

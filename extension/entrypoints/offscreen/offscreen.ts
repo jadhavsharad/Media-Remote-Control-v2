@@ -36,7 +36,7 @@ const connect = () => {
 connect()
 
 const isSocketOpen = () => {
-    return socket.readyState === socket.OPEN
+    return socket.readyState === 1
 }
 
 const reconnectSocket = (event: { code: number, reason: string }) => {

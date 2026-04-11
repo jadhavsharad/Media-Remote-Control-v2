@@ -18,6 +18,8 @@ export const MESSAGE_TYPES = {
   HOST_DISCONNECT: "session.host_disconnect", // CHECK
   HOST_RECONNECTED: "session.host_reconnected",
   HOST_RECONNECT: "session.host_reconnect", // CHECK
+  KICK_REMOTE: "session.kick_remote",
+  REMOTE_KICKED: "session.remote_kicked",
 
   // connection
   WS_OPEN: "connection.ws_open", // CHECK

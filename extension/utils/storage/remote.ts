@@ -2,18 +2,16 @@ import { storage } from 'wxt/utils/storage';
 
 type RemoteCtx = {
     tabId: number | null;
-    model?: string;
-    connectedAt?: number | null
 };
 type RemoteMap = Record<string, RemoteCtx>;
 
-const store = storage.defineItem<RemoteMap>('local:remoteContext', { defaultValue: {} });
+const store = storage.defineItem<RemoteMap>('session:remoteContext', { defaultValue: {} });
 
 export const Remotes = {
 
-    async add(remoteId: string, connectedAt: number, model?: string): Promise<{ok: boolean}> {
+    async add(remoteId: string): Promise<{ok: boolean}> {
         const map = await store.getValue();
-        await store.setValue({ ...map, [remoteId]: { tabId: null, model, connectedAt } });
+        await store.setValue({ ...map, [remoteId]: { tabId: null } });
         return {ok: true};
     },
 
