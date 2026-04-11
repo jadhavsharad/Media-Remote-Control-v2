@@ -15,9 +15,10 @@ const Socket = {
     const platformInfo = getPlatformInfo();
     forwardToOffscreen({ type: MESSAGE_TYPES.HOST_REGISTER, token, platformInfo })
   },
-  onRegistered: async (msg: { type: string, sessionId: string, hostToken: string }): Promise<({ ok: boolean })> => {
+  onRegistered: async (msg: { type: string, sessionId: string, hostToken: string, remotes: any[] }): Promise<({ ok: boolean })> => {
     await hostToken.setValue(msg.hostToken)
     await sessionIdentity.setValue(msg.sessionId)
+    await connectedDevices.setValue(msg.remotes)
     return { ok: true }
   },
   onClose: () => {
@@ -41,9 +42,7 @@ export const receive = {
         Socket.onClose()
         break;
       case MESSAGE_TYPES.HOST_REGISTERED:
-        const result = await Socket.onRegistered(msg)
-        logger.info("Host Registered:", result.ok)
-        // if (isProd) await Media.sendList()
+        await Socket.onRegistered(msg)
         break;
       case MESSAGE_TYPES.PAIRING_KEY:
         await pairingKey.setValue(msg.code)
@@ -52,12 +51,12 @@ export const receive = {
         break;
 
       case MESSAGE_TYPES.REMOTE_JOINED:
-        logger.info("Remote joined:", msg)
         if (!msg.id || !msg.sessionId) {
           logger.error("Remote joined message missing required fields")
           return;
         }
 
+        // TODO: NOTIFY SERVER ON THIS
         if (msg.sessionId !== await sessionIdentity.getValue()) {
           logger.error("Remote is not registered for this session")
           return;

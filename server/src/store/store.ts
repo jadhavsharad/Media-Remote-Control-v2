@@ -14,8 +14,11 @@ export interface RemoteIdentity {
   id: string;
   sessionId: string;
   expiresAt: number;
-  revoked: boolean;
   remoteToken: string;
+  modelName: string;
+  platform: string;
+  browser: string;  
+  connectedAt: number;
 }
 
 // --- Internal types ---
@@ -115,14 +118,7 @@ function createStore(redis: Redis) {
       return sockets.get(route.hostSocketId) ?? null;
     },
 
-    addRemote(sessionId: string, remoteId: string, socketId: string) {
-      ensureRoute(sessionId).remotes.set(remoteId, socketId);
-    },
 
-    removeRemote(sessionId: string, remoteId: string) {
-      const route = routes.get(sessionId);
-      if (route) route.remotes.delete(remoteId);
-    },
 
     getRemoteSocket(sessionId: string, remoteId: string): WebSocket | null {
       const route = routes.get(sessionId);
@@ -186,12 +182,28 @@ function createStore(redis: Redis) {
     async addRemoteToSession(sessionId: string, remoteId: string, remoteToken: string, socketId: string): Promise<void> {
       ensureRoute(sessionId).remotes.set(remoteId, socketId);
       await redis.hset(KEYS.sessionRemotes(sessionId), { [remoteId]: remoteToken });
+      await redis.expire(KEYS.sessionRemotes(sessionId), ttl);
     },
 
     async removeRemoteFromSession(sessionId: string, remoteId: string): Promise<void> {
       const route = routes.get(sessionId);
       if (route) route.remotes.delete(remoteId);
       await redis.hdel(KEYS.sessionRemotes(sessionId), remoteId);
+    },
+
+    async deleteRemote(sessionId: string, remoteId: string): Promise<void> {
+      const route = routes.get(sessionId);
+      if (route) route.remotes.delete(remoteId);
+      const remoteToken = await redis.hget<string>(KEYS.sessionRemotes(sessionId), remoteId);
+      const ops: Promise<unknown>[] = [redis.hdel(KEYS.sessionRemotes(sessionId), remoteId)];
+      if (remoteToken) ops.push(redis.del(KEYS.remote(remoteToken)));
+      await Promise.all(ops);
+    },
+
+    async getSessionRemotes(sessionId: string): Promise<Record<string, string>> {
+      const remotes = await redis.hgetall(KEYS.sessionRemotes(sessionId));
+      if (!remotes || Object.keys(remotes).length === 0) return {};
+      return remotes as Record<string, string>;
     },
   });
 }

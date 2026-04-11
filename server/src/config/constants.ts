@@ -18,6 +18,8 @@ const auth = Object.freeze({
     hostDisconnected: "session.host_disconnected",
     hostReconnect: "session.host_reconnect",
     hostReconnected: "session.host_reconnected",
+    kickRemote: "session.kick_remote",
+    remoteKicked: "session.remote_kicked",
     newTab: "session.new_tab",
 });
 

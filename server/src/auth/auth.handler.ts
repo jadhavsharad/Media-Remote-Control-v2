@@ -5,6 +5,13 @@ import utils from "../shared/utils";
 import logger from "../config/logger";
 import type { Store, SessionData } from "../store/store";
 
+const pairCodeRegex = /^[A-Z2-9]{6}$/;
+const maxFieldLength = 64;
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= maxFieldLength;
+}
+
 async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: Store): Promise<boolean> {
   const t = utils.now();
   const meta = Socket.metadata(ws);
@@ -45,8 +52,17 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     }
 
     Socket.setMeta(ws, { socketId: meta.socketId, lastSeenAt: meta.lastSeenAt, role: constants.role.host, sessionId: sessionId!, hostToken: hostToken!, });
-    logger.debug(`Host registered: ${hostToken}`);
-    Socket.send(ws, { type: constants.auth.hostRegistered, sessionId: sessionId, hostToken, });
+
+    const sessionRemotes = await store.getSessionRemotes(sessionId!);
+    let remotes = []
+    for (const [_remoteId, remoteToken] of Object.entries(sessionRemotes)) {
+      const remoteIdentity = await store.getRemote(remoteToken);
+      if (remoteIdentity && t <= Number(remoteIdentity.expiresAt)) {
+        remotes.push(remoteIdentity)
+      }
+    }
+
+    Socket.send(ws, { type: constants.auth.hostRegistered, sessionId: sessionId, hostToken, remotes: remotes });
     return true;
   }
 
@@ -56,15 +72,30 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     store.deletePairCode(meta.sessionId);
     const code = utils.generatePairCode();
     const pairingKeyExpiry = store.setPairCode(code, meta.sessionId);
-    logger.debug(`Pairing key generated: ${code}`);
     Socket.send(ws, { type: constants.auth.pairingKey, code, pairingKeyExpiry, });
     return true;
   }
 
-  // TODO: REVIEW FROM HERE
   // --- PAIRING EXCHANGE (Remote entering code) ---
   if (msg.type === constants.auth.exchangePairKey) {
-    const code = msg.code as string;
+    if (meta.role !== null) {
+      logger.warn("Already authenticated socket attempting to pair");
+      return true;
+    }
+
+    const { modelName, platform, browser, code } = msg as { modelName: unknown, platform: unknown, browser: unknown, code: unknown };
+
+    if (!isNonEmptyString(code) || !pairCodeRegex.test(code)) {
+      Socket.send(ws, { type: constants.auth.pairFailed });
+      logger.warn("Invalid pair code format");
+      return true;
+    }
+
+    if (!isNonEmptyString(modelName) || !isNonEmptyString(platform) || !isNonEmptyString(browser)) {
+      Socket.send(ws, { type: constants.auth.pairFailed });
+      logger.warn("Invalid device info fields");
+      return true;
+    }
 
     const sessionId = store.resolvePairCode(code);
     if (!sessionId) {
@@ -84,13 +115,16 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     const identity = {
       id: remoteIdentityId,
       sessionId,
+      modelName,
+      platform,
+      browser,
+      connectedAt: t,
       expiresAt: t + config.tokenTtlMs,
-      revoked: false,
       remoteToken,
     };
 
     await store.registerRemote(remoteToken, identity);
-    await attachRemote(ws, identity, remoteToken, sessionId, session, store, code);
+    await attachRemote(ws, identity, remoteToken, session, store, code);
 
     Socket.send(ws, {
       type: constants.auth.pairSuccess,
@@ -98,17 +132,32 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
       sessionId,
       hostInfo: { os: session.hostOS, browser: session.hostBrowser, extensionVersion: session.hostExtensionVersion, },
     });
-    logger.debug(`Remote paired: ${sessionId}`);
+
     return true;
   }
 
   // --- SESSION VALIDATION (Remote reconnecting) ---
   if (msg.type === constants.auth.validateSession) {
-    const remoteToken = msg.remoteToken as string;
+    if (meta.role === constants.role.host) {
+      logger.warn("Host socket attempting session validation as remote");
+      return true;
+    }
+
+    const remoteToken = msg.remoteToken;
+    if (!isNonEmptyString(remoteToken)) {
+      Socket.send(ws, { type: constants.auth.sessionInvalid });
+      logger.warn("Invalid remoteToken");
+      return true;
+    }
+
+    if (!isNonEmptyString(msg.modelName as unknown) || !isNonEmptyString(msg.platform as unknown) || !isNonEmptyString(msg.browser as unknown)) {
+      Socket.send(ws, { type: constants.auth.sessionInvalid });
+      logger.warn("Invalid device info in session validation");
+      return true;
+    }
 
     const identity = await store.getRemote(remoteToken);
-
-    if (!identity || identity.revoked || t > identity.expiresAt) {
+    if (!identity || t > Number(identity.expiresAt) || (msg.modelName !== identity.modelName || msg.platform !== identity.platform || msg.browser !== identity.browser)) {
       Socket.send(ws, { type: constants.auth.sessionInvalid });
       logger.warn("Session invalid");
       return true;
@@ -121,7 +170,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
       return true;
     }
 
-    await attachRemote(ws, identity, remoteToken, identity.sessionId, session, store);
+    await attachRemote(ws, identity, remoteToken, session, store);
 
     Socket.send(ws, {
       type: constants.auth.sessionValid,
@@ -132,15 +181,41 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
         extensionVersion: session.hostExtensionVersion,
       },
     });
-    logger.debug(`Session validated: ${identity.sessionId}`);
+    return true;
+  }
+
+  if (msg.type === constants.auth.kickRemote) {
+    if (meta.role !== constants.role.host) {
+      logger.warn("Non-host attempting to kick remote");
+      return true;
+    }
+
+    const remoteId = msg.remoteId;
+    if (!isNonEmptyString(remoteId)) {
+      logger.warn("Invalid remoteId in kick request");
+      return true;
+    }
+
+    const sessionId = meta.sessionId;
+
+    // Inform the remote client before disconnecting
+    const remoteWs = store.getRemoteSocket(sessionId, remoteId);
+    if (remoteWs) {
+      Socket.send(remoteWs, { type: constants.auth.remoteKicked });
+      Socket.close(remoteWs, 4000, "Kicked by host");
+    }
+
+    await store.deleteRemote(sessionId, remoteId);
+    logger.debug(`Remote kicked: ${remoteId} from session ${sessionId}`);
     return true;
   }
 
   return false;
 }
 
-async function attachRemote(ws: WebSocket, identity: { id: string; sessionId: string }, remoteToken: string, sessionId: string, _session: SessionData, store: Store, code?: string): Promise<void> {
+async function attachRemote(ws: WebSocket, identity: { id: string; sessionId: string; modelName: string; connectedAt: number, platform: string, browser: string }, remoteToken: string, _session: SessionData, store: Store, code?: string): Promise<void> {
   const meta = Socket.metadata(ws);
+  const sessionId = identity.sessionId;
 
   const existingWs = store.getRemoteSocket(sessionId, identity.id);
   if (existingWs && existingWs !== ws) {
@@ -161,7 +236,7 @@ async function attachRemote(ws: WebSocket, identity: { id: string; sessionId: st
 
   const hostWs = store.getHostSocket(sessionId);
   if (hostWs) {
-    Socket.send(hostWs, { type: constants.auth.remoteJoined, remoteId: identity.id, code, });
+    Socket.send(hostWs, { type: constants.auth.remoteJoined, invalidateCode: !!code, ...identity });
     logger.debug(`Remote joined: ${sessionId}`);
   }
 }
