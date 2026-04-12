@@ -1,4 +1,4 @@
-export const getDeviceModel = async () => {
+const getDeviceModel = async () => {
   const nav = navigator as any;
   if (nav.userAgentData) {
     const data = await nav.userAgentData.getHighEntropyValues(["model"]);
@@ -7,7 +7,7 @@ export const getDeviceModel = async () => {
   return null;
 }
 
-export const getPlatform = async () => {
+const getPlatform = async () => {
   const nav = navigator as any;
   if (nav.userAgentData) {
     const data = await nav.userAgentData.getHighEntropyValues(["platform"]);
@@ -16,7 +16,7 @@ export const getPlatform = async () => {
   return null;
 }
 
-export const getBrowser = () => {
+const getBrowser = () => {
   const nav = navigator as any;
   if (nav.userAgentData && nav.userAgentData.brands?.length > 0) {
     const brandObj = nav.userAgentData.brands.at(-1);

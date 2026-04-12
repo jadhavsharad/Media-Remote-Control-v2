@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import ReconnectingWebSocket from "reconnecting-websocket";
 
 type Handler = (message: any) => void;
@@ -19,6 +20,20 @@ ws.onmessage = (evt) => {
     }
 };
 
-export const send = (msg: unknown) => { if (ws.readyState === 1) ws.send(JSON.stringify(msg)) };
-export const listen = (callback: Handler) => { subs.add(callback); return () => subs.delete(callback); };
-export const socketState = (callback: Handler) => { state.add(callback); return () => state.delete(callback); };
+const send = (msg: unknown) => { if (ws.readyState === 1) ws.send(JSON.stringify(msg)) };
+const listen = (callback: Handler) => { subs.add(callback); return () => subs.delete(callback); };
+const socketState = (callback: Handler) => { state.add(callback); return () => state.delete(callback); };
+
+
+export function useSocket(callback?: (msg: any) => void) {
+    const [isConnected, setIsConnected] = useState(ws.readyState === 1);
+    useEffect(() => {
+        const handleStateChange = (stateId: number) => { setIsConnected(stateId === 1) }
+        const stopState = socketState(handleStateChange);
+        const stopListen = callback ? listen(callback) : () => { }
+        handleStateChange(ws.readyState);
+        return () => { stopState(); stopListen(); };
+    }, [callback]);
+
+    return { send, isConnected };
+}

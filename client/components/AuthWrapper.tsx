@@ -1,15 +1,18 @@
 "use client"
 import { useCallback, useEffect, useState } from "react";
 import { useLocalStorage } from "react-storage-complete";
-import { useSocket } from "@/hook/websocket";
+import { useSocket } from "@/lib/websocket";
 import { auth } from "@/lib/constants";
 import PairingScreen from "./PairingScreen";
 import { getDeviceInfo } from "@/lib/device";
+import SocketListener from "./SocketListener";
 
 export default function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     const [token, setToken] = useLocalStorage("token");
-    const [_, setHostInfo] = useLocalStorage("hostInfo");
+    const [, setRemoteId] = useLocalStorage("remoteId");
+    const [, setHostInfo] = useLocalStorage("hostInfo");
+    const [, setSessionId] = useLocalStorage("sessionId");
     const [isMounted, setIsMounted] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -18,15 +21,19 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
             if (msg.type === auth.pairSuccess) {
                 setToken(msg.remoteToken);
                 setHostInfo(msg.hostInfo);
+                setRemoteId(msg.remoteId);
+                setSessionId(msg.sessionId);
             }
             setIsAuthenticated(true);
         }
         if (msg.type === auth.sessionInvalid || msg.type === auth.pairFailed || msg.type === auth.remoteKicked) {
             setToken(null);
             setHostInfo(null);
+            setRemoteId(null);
+            setSessionId(null);
             setIsAuthenticated(false);
         }
-    }, [setToken, setHostInfo]);
+    }, [setToken, setHostInfo, setRemoteId, setSessionId]);
 
     const { send, isConnected } = useSocket(handler);
 
@@ -54,7 +61,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
         );
     }
 
-    if (isAuthenticated) { return <>{children}</>; }
+    if (isAuthenticated) { return <><SocketListener />{children}</>; }
 
     return null;
 }

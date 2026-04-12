@@ -21,9 +21,7 @@ const About = () => {
         </div>
         <Divider line />
         <a href="https://github.com/jadhavsharad/Media-Remote-Control-v2" className="cursor-pointer w-full flex justify-between">
-          <div className="flex items-center gap-2 text-xs">
-            <FaGithub /> View on Github
-          </div>
+          <div className="flex items-center gap-2 text-xs">  <FaGithub /> View on Github</div>
           <FaLink />
         </a>
       </Card>

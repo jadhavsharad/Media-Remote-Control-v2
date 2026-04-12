@@ -1,7 +1,7 @@
 "use client"
 import Html5QrcodePlugin from "@/components/Html5QrcodePlugin"
 import { IoPhonePortraitOutline } from "react-icons/io5"
-import { useSocket } from "@/hook/websocket"
+import { useSocket } from "@/lib/websocket"
 import { auth } from "@/lib/constants"
 import { getDeviceInfo } from "@/lib/device"
 

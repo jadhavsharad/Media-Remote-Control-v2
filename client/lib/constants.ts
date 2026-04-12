@@ -14,6 +14,8 @@ export const media = Object.freeze({
     mediaList: "media.list",
     selectActiveTab: "media.select_tab",
     stateUpdate: "control.state_update",
+    tabCreated: "media.tab_created",
+    tabRemoved: "media.tab_removed",
     intent: {
         set: "control.set",
         report: "control.report"

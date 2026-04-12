@@ -10,7 +10,7 @@ const VolumeControl = () => {
   const MuteIcon = resolveIcon(mute.icon)
 
   return (
-    <div className="mx-auto flex items-center gap-2">
+    <div  className="mx-auto flex items-center gap-2">
       {mute.isAvailable && MuteIcon && (
         <IconButton label="Mute"><MuteIcon /></IconButton>
       )}

@@ -1,11 +1,11 @@
 import { IconType } from "react-icons"
 import { IoPlay, IoPause, IoPlayBack, IoPlayForward, IoVolumeHigh, IoVolumeLow, IoVolumeMute } from "react-icons/io5"
-import { TbBookmarksFilled } from "react-icons/tb"
+import { TbBookmarksFilled, TbCopy } from "react-icons/tb"
 
-const ICON_MAP: Record<string, IconType> = {
+const iconMap: Record<string, IconType> = {
   IoPlay, IoPause, IoPlayBack, IoPlayForward,
   IoVolumeHigh, IoVolumeLow, IoVolumeMute,
-  TbBookmarksFilled,
+  TbBookmarksFilled, TbCopy
 }
 
-export const resolveIcon = (name: string): IconType | null => ICON_MAP[name] ?? null
+export const resolveIcon = (name: string): IconType | null => iconMap[name] ?? null

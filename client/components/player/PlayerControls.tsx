@@ -1,16 +1,17 @@
 import { IoIosCopy } from "react-icons/io"
-import { mediaControls } from "@/lib/feature"
+import { actions, mediaControls } from "@/lib/feature"
 import { resolveIcon } from "@/lib/icons"
 import IconButton from "@/components/ui/IconButton"
 
 const PlayerControls = () => {
   const { toggle, backward, forward } = mediaControls.playback
-  const { bookmark } = mediaControls.others
+  const { bookmark, copy } = actions
 
   const PlayIcon = resolveIcon(toggle.icon.off)
   const BackwardIcon = resolveIcon(backward.icon)
   const ForwardIcon = resolveIcon(forward.icon)
   const BookmarkIcon = resolveIcon(bookmark.icon)
+  const CopyIcon = resolveIcon(copy.icon)
 
   return (
     <div className="mx-auto flex items-center justify-between gap-2">
@@ -31,7 +32,9 @@ const PlayerControls = () => {
         )}
       </div>
       <div>
-        <IconButton label="Copy the site URL"><IoIosCopy /></IconButton>
+        {copy.isAvailable && CopyIcon && (
+          <IconButton label="Copy the site URL"><CopyIcon /></IconButton>
+        )}
       </div>
     </div>
   )
