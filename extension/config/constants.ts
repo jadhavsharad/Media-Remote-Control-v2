@@ -31,6 +31,8 @@ export const MESSAGE_TYPES = {
   // media
   MEDIA_LIST: "media.list", // CHECK
   SELECT_ACTIVE_TAB: "media.select_tab", // CHECK
+  MEDIA_TAB_REMOVED: "media.tab_removed", // CHECK
+  MEDIA_TAB_CREATED: "media.tab_created", // CHECK
 
   // controls
   STATE_UPDATE: "control.state_update", // CHECK

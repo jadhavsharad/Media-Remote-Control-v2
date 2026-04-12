@@ -131,13 +131,17 @@ const Notify = {
   tab: debounced(async (tabId: number) => {
     try {
       const { data } = await TabCache.getMeta(tabId);
-      forwardToOffscreen({ type: MESSAGE_TYPES.STATE_UPDATE, tab: data });
+      forwardToOffscreen({ type: MESSAGE_TYPES.STATE_UPDATE, tabs: [data] });
       logger.info("[NOTIFY:TAB]", data);
     } catch { }
   }),
   removed: debounced((tabId: number) => {
-    Notify.all()
+    forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_TAB_REMOVED, tabId });
     logger.info("[NOTIFY:REMOVED]", tabId);
+  }),
+  created: debounced((tabId: number) => {
+    forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_TAB_CREATED, tabId });
+    logger.info("[NOTIFY:CREATED]", tabId);
   }),
 }
 
@@ -176,7 +180,7 @@ export const listeners = {
             favIconUrl: tab.favIconUrl,
             muted: tab.mutedInfo?.muted,
           });
-          Notify.tab(tabId);
+          Notify.all();
         } catch (error) {
           logger.error("Error updating tab:", error)
         }
@@ -215,7 +219,7 @@ export const listeners = {
           favIconUrl: tab.favIconUrl,
           muted: tab.mutedInfo?.muted,
         });
-        Notify.tab(tab.id!);
+        Notify.created(tab.id!);
       } catch (error) {
         logger.error("Error creating tab:", error)
       }
