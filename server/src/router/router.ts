@@ -1,6 +1,7 @@
 import logger from "../config/logger";
+import constants from "../config/constants";
 import validator from "../validators/validator";
-import Socket from "../socket/socket";
+import Socket, { SocketMeta } from "../socket/socket";
 import { handleAuth } from "../auth/auth.handler";
 import type { Store } from "../store/store";
 
@@ -25,11 +26,34 @@ const router = Object.freeze({
     if (validator.isRateLimited(meta)) {
       logger.warn(`Rate limiting for socket ${meta.socketId}`);
       return;
-    };
+    }
 
-    // TODO: session integrity check
-    // TODO: message routing
+    if (!validator.isSessionValid(ws, meta, store)) {
+      logger.warn("Session integrity check failed");
+      return;
+    }
+
+    routeMessage(msg, meta, store);
   },
 });
+
+function routeMessage(msg: Record<string, unknown>, meta: SocketMeta, store: Store,): void {
+  if (meta.role === constants.role.remote) {
+    const host = store.getHostSocket(meta.sessionId);
+    if (host) Socket.send(host, { ...msg, remoteId: meta.remoteIdentityId });
+    return;
+  }
+
+  if (meta.role === constants.role.host) {
+    const remoteId = msg.remoteId as string | undefined;
+    if (remoteId) {
+      const remote = store.getRemoteSocket(meta.sessionId, remoteId);
+      if (remote) Socket.send(remote, msg);
+    } else {
+      const remotes = store.getAllRemoteSockets(meta.sessionId);
+      for (const remote of remotes) Socket.send(remote, msg);
+    }
+  }
+}
 
 export default router;

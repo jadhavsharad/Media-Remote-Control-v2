@@ -34,6 +34,8 @@ const socket = Object.freeze({
 const media = Object.freeze({
     list: "media.list",
     selectTab: "media.select_tab",
+    tabCreated: "media.tab_created",
+    tabRemoved: "media.tab_removed",
 });
 
 const control = Object.freeze({

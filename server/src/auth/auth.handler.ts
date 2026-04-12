@@ -25,6 +25,11 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
 
     const existingHostToken = msg.token as string | undefined;
     const info = msg.platformInfo as { os: string; browser: string; extensionVersion: string };
+    if (!info || !isNonEmptyString(info.os) || !isNonEmptyString(info.browser) || !isNonEmptyString(info.extensionVersion)) {
+      Socket.terminate(ws);
+      logger.warn("Host register missing or invalid platformInfo");
+      return true;
+    }
     let session: SessionData | undefined;
     let sessionId: string | undefined;
     let hostToken: string | undefined;
@@ -129,6 +134,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     Socket.send(ws, {
       type: constants.auth.pairSuccess,
       remoteToken,
+      remoteId: remoteIdentityId,
       sessionId,
       hostInfo: { os: session.hostOS, browser: session.hostBrowser, extensionVersion: session.hostExtensionVersion, },
     });

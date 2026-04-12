@@ -128,6 +128,17 @@ function createStore(redis: Redis) {
       return sockets.get(socketId) ?? null;
     },
 
+    getAllRemoteSockets(sessionId: string): WebSocket[] {
+      const route = routes.get(sessionId);
+      if (!route) return [];
+      const result: WebSocket[] = [];
+      route.remotes.forEach((socketId) => {
+        const ws = sockets.get(socketId);
+        if (ws) result.push(ws);
+      });
+      return result;
+    },
+
     isHostValid(sessionId: string, socketId: string): boolean {
       const route = routes.get(sessionId);
       return route ? route.hostSocketId === socketId : false;
