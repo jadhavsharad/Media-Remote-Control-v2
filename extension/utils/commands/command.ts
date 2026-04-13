@@ -13,7 +13,8 @@ const commandSchema = z.object({
   remoteId: z.string(),
   tabId: z.number(),
   value: z.union([z.number(), z.string(), z.boolean()]),
-  type: z.literal(MESSAGE_TYPES.STATE_UPDATE)
+  type: z.literal(MESSAGE_TYPES.STATE_UPDATE),
+  timestamp: z.number().optional()
 }).strict();
 
 

@@ -13,9 +13,9 @@ interface PlayerControlsProps {
 }
 
 const iconVariants = {
-  hidden: { opacity: 0, scale: 0.5, rotate: -30 },
-  visible: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring" as const} },
-  exit: { opacity: 0, scale: 0.5, rotate: 30, transition: { duration: 0.1 } },
+  hidden: { opacity: 0, scale: 0.75, rotate: -30 },
+  visible: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring" as const } },
+  exit: { opacity: 0, scale: 0.75, rotate: 30, transition: { duration: 0.1 } },
 }
 
 const PlayerControls = ({ playback, handlePlayback, handleBackward, handleForward, handleCopy, handleBookmark }: PlayerControlsProps) => {

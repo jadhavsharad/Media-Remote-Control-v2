@@ -7,7 +7,6 @@ interface TabMetadata {
 }
 
 interface MediaMetadata {
-    [key: string]: any;
     mediaTitle: string;
     mediaArtist: string;
     mediaAlbum: string;

@@ -1,11 +1,7 @@
 import logger from "@/config/logger";
 
 const DELAY_MS: number = 200;
-/**
- * Debounce with automatic per-key support.
- * - No args: single shared timer (e.g. Notify.all)
- * - With args: first arg used as debounce key (e.g. Notify.tab(tabId))
- */
+
 export const debounced = <T extends (...args: any[]) => any>(fn: T, delay: number = DELAY_MS) => {
   const timers = new Map<string, NodeJS.Timeout>();
   return (...args: Parameters<T>): void => {
@@ -18,4 +14,32 @@ export const debounced = <T extends (...args: any[]) => any>(fn: T, delay: numbe
       catch (e) { logger.warn("Scheduled task failed", e); }
     }, delay));
   };
+}
+export const maxResImage = (src: string) => {
+    if (!src) return src
+
+    try {
+        const url = new URL(src)
+        const hostname = url.hostname
+
+        if (hostname.includes("youtube.com")) {
+            const videoId = url.searchParams.get("v")
+            if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+        }
+
+        if (hostname.includes("youtu.be")) {
+            const videoId = url.pathname.slice(1)
+            if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+        }
+
+        if (hostname.includes("youtube.com") && url.pathname.startsWith("/embed/")) {
+            const videoId = url.pathname.split("/embed/")[1]?.split("/")[0]
+            if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+        }
+
+    } catch {
+
+    }
+
+    return src
 }

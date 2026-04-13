@@ -11,6 +11,8 @@ export interface MediaTab {
     mediaArtwork?: string;
     playback?: string;
     ended?: boolean;
+    currentTime?:number;
+    duration?: number
 }
 
 export interface RemoteStore {

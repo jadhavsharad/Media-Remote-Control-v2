@@ -101,7 +101,7 @@ export const receive = {
     const { type, intent, key, value, ...mediaMeta } = msg;
     const update = { ...mediaMeta, ...(key !== undefined ? { [key]: value } : {}) };
 
-    const result = await TabCache.setMediaMeta(tabId, update);
+    const result = await TabCache.setMediaMeta(tabId, { ...update, mediaArtwork: maxResImage(sender.tab.url) });
 
     if (!result.ok) {
       // Tab not registered — auto-register from sender.tab if it's a media tab
@@ -113,7 +113,7 @@ export const receive = {
           favIconUrl: sender.tab.favIconUrl,
           muted: sender.tab.mutedInfo?.muted,
         });
-        await TabCache.setMediaMeta(tabId, update);
+        await TabCache.setMediaMeta(tabId, { ...update, mediaArtwork: maxResImage(sender.tab.url) });
       } else {
         return;
       }
