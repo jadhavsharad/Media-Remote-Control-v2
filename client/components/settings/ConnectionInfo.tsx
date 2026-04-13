@@ -1,35 +1,36 @@
 "use client"
-import { FaChrome, FaWindows, FaLinux, FaApple, FaBrave, FaEdge, FaFirefox, FaQuestion, FaOpera, FaYandex, FaAndroid, } from "react-icons/fa6"
 import SectionTitle from "@/components/ui/SectionTitle"
 import Card from "@/components/ui/Card"
 import Divider from "@/components/ui/Divider"
-import { useLocalStorage } from "react-storage-complete"
+import { useAuthStore } from "@/lib/store"
+import { Icons } from "@/lib/icons"
 
 const browser = (browser: string) => {
   const lower = browser?.toLowerCase();
-  if (lower?.includes("chrome")) return <FaChrome />
-  if (lower?.includes("brave")) return <FaBrave />
-  if (lower?.includes("edge")) return <FaEdge />
-  if (lower?.includes("firefox")) return <FaFirefox />
-  if (lower?.includes("opera")) return <FaOpera />
-  if (lower?.includes("yandex")) return <FaYandex />
-  return <FaQuestion />
+  if (lower?.includes("chrome")) return <Icons.chrome />
+  if (lower?.includes("brave")) return <Icons.brave />
+  if (lower?.includes("edge")) return <Icons.edge />
+  if (lower?.includes("firefox")) return <Icons.firefox />
+  if (lower?.includes("opera")) return <Icons.opera />
+  if (lower?.includes("yandex")) return <Icons.yandex />
+  return <Icons.question />
 }
 
 const platform = (platform: string) => {
   const lower = platform?.toLowerCase();
-  if (lower?.includes("android")) return <FaAndroid />
-  if (lower?.includes("chrome")) return <FaChrome />
-  if (lower?.includes("ios")) return <FaApple />
-  if (lower?.includes("windows")) return <FaWindows />
-  if (lower?.includes("linux")) return <FaLinux />
-  if (lower?.includes("mac")) return <FaApple />
-  return <FaQuestion />
+  if (lower?.includes("android")) return <Icons.android />
+  if (lower?.includes("chrome")) return <Icons.chrome />
+  if (lower?.includes("ios")) return <Icons.mac />
+  if (lower?.includes("windows")) return <Icons.windows />
+  if (lower?.includes("linux")) return <Icons.linux />
+  if (lower?.includes("mac")) return <Icons.mac />
+  return <Icons.question />
 }
 
 const ConnectionInfo = () => {
-  const [hostInfo] = useLocalStorage("hostInfo")
-  const [sessionId] = useLocalStorage("sessionId")
+  const hostInfo = useAuthStore(s => s.hostInfo)
+  const sessionId = useAuthStore(s => s.sessionId)
+  const clearAuth = useAuthStore(s => s.clearAuth)
   return (
     <div className="my-4">
       <SectionTitle>Host Information</SectionTitle>
@@ -49,7 +50,7 @@ const ConnectionInfo = () => {
           <p className="text-xs text-zinc-400 font-semibold">Extension Version: {hostInfo?.extensionVersion}</p>
           <p className="text-xs text-zinc-400 truncate font-semibold">Session id: {sessionId}</p>
         </div>
-        <button className="bg-red-500/20 text-rose-500 py-2 text-xs font-bold w-full rounded-lg cursor-pointer">Unpair</button>
+        <button onClick={clearAuth} className="bg-red-500/20 text-rose-500 py-2 text-xs font-bold w-full rounded-lg cursor-pointer">Unpair</button>
       </Card>
     </div>
   )

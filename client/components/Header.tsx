@@ -1,6 +1,8 @@
-const Header = ({ title }: { title: string }) => {
+import { cn } from "@/lib/utils"
+
+const Header = ({ title, className }: { title: string, className?: string }) => {
   return (
-    <header className="w-full text-center uppercase ">
+    <header className={cn("w-full text-center uppercase ", className)}>
       <h1 className="font-bold">{title}</h1>
     </header>
   )

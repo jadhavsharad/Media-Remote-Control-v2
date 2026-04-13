@@ -3,9 +3,9 @@ import Image from "next/image"
 import { IoIosMusicalNotes } from "react-icons/io"
 import { motion } from "framer-motion"
 
-const MediaCover = ({ src="" }: { src: string }) => {
+const MediaCover = ({ src }: { src: string }) => {
   return (
-    <div className="mx-auto w-4/6 aspect-square rounded-full overflow-hidden">
+    <div className="mx-auto w-4/6 aspect-square rounded-2xl overflow-hidden">
       <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring" }} className="w-full h-full bg-zinc-950/70 rounded-[inherit] flex items-center justify-center">
         {
           src ?

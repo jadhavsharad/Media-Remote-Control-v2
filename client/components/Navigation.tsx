@@ -3,15 +3,14 @@
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BsFillHouseDoorFill } from "react-icons/bs"
-import { IoGrid, IoLayers, IoSettings } from "react-icons/io5"
+import { Icons } from "@/lib/icons"
 
 
 const items = [
-  { icon: <BsFillHouseDoorFill />, label: "Home", href: "/" },
-  { icon: <IoLayers />, label: "Active Tabs", href: "/tabs" },
-  { icon: <IoGrid />, label: "Quick Launch", href: "/quick-launch" },
-  { icon: <IoSettings />, label: "Settings", href: "/settings" },
+  { icon: <Icons.home />, label: "Home", href: "/" },
+  { icon: <Icons.tabs />, label: "Active Tabs", href: "/tabs" },
+  { icon: <Icons.quickLaunch />, label: "Quick Launch", href: "/quick-launch" },
+  { icon: <Icons.settings />, label: "Settings", href: "/settings" },
 ]
 
 const Navigation = ({ className }: { className?: string }) => {

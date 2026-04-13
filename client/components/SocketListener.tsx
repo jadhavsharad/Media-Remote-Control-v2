@@ -1,46 +1,21 @@
-"use client"
-import { useCallback } from "react"
-import { useSessionStorage } from "react-storage-complete"
-import { useSocket } from "@/lib/websocket"
 import { media } from "@/lib/constants"
-import { MediaTab } from "@/lib/tabs"
+import { useRemoteStore } from "@/lib/store"
+import { useSocket } from "@/lib/websocket"
+import { useCallback } from "react"
 
 export default function GlobalMediaListener() {
-    const [tabs, setTabs] = useSessionStorage<MediaTab[]>('tabs', [])
-    const [activeTab, setActiveTab] = useSessionStorage<MediaTab | null>('activeTab', null)
+    const { setTabs, updateTabs, removeTab, addTab } = useRemoteStore()
 
     const handler = useCallback((msg: any) => {
-        const currentTabs = tabs || [];
-        const currentActive = activeTab || null;
-
         switch (msg.type) {
-            case media.mediaList:
-                setTabs(msg.tabs || []);
-                break;
-
-            case media.tabCreated:
-                setTabs([...currentTabs, msg.tab]);
-                break;
-
-            case media.tabRemoved:
-                setTabs(currentTabs.filter((t: MediaTab) => t.tabId !== msg.tabId));
-                if (currentActive?.tabId === msg.tabId) {
-                    setActiveTab(null);
-                }
-                break;
-
-            case media.stateUpdate:
-                setTabs(currentTabs.map((t: MediaTab) => 
-                    t.tabId === msg.tabId ? { ...t, ...msg.state } : t
-                ));
-                if (currentActive?.tabId === msg.tabId) {
-                    setActiveTab({ ...currentActive, ...msg.state });
-                }
-                break;
+            case media.mediaList: return setTabs(msg.tabs ?? [])
+            case media.stateUpdate: return updateTabs(msg.tabs ?? [])
+            case media.tabCreated: return msg.tab && addTab(msg.tab)
+            case media.tabRemoved: return msg.tabId && removeTab(msg.tabId)
         }
-    }, [tabs, activeTab, setTabs, setActiveTab])
+    }, [setTabs, updateTabs, removeTab, addTab]) 
 
-    useSocket(handler);
-
-    return null;
+    useSocket(handler)
+    return null
 }
+

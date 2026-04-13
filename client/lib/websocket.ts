@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ReconnectingWebSocket from "reconnecting-websocket";
+import { useRemoteStore } from "./store";
 
 type Handler = (message: any) => void;
 const subs = new Set<Handler>();
@@ -26,14 +27,16 @@ const socketState = (callback: Handler) => { state.add(callback); return () => s
 
 
 export function useSocket(callback?: (msg: any) => void) {
-    const [isConnected, setIsConnected] = useState(ws.readyState === 1);
+    const setConnected = useRemoteStore(s => s.setConnected)
     useEffect(() => {
-        const handleStateChange = (stateId: number) => { setIsConnected(stateId === 1) }
-        const stopState = socketState(handleStateChange);
-        const stopListen = callback ? listen(callback) : () => { }
-        handleStateChange(ws.readyState);
-        return () => { stopState(); stopListen(); };
-    }, [callback]);
-
-    return { send, isConnected };
+        const stop = socketState(setConnected)
+        setConnected(ws.readyState === 1)
+        return () => { stop() }
+    }, [setConnected])
+    useEffect(() => {
+        if (!callback) return
+        const stop = listen(callback)
+        return () => { stop() }
+    }, [callback])
+    return { send, isConnected: useRemoteStore(s => s.isConnected) }
 }

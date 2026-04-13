@@ -1,39 +1,28 @@
 "use client"
 import { useCallback, useEffect, useState } from "react";
-import { useLocalStorage } from "react-storage-complete";
 import { useSocket } from "@/lib/websocket";
 import { auth } from "@/lib/constants";
 import PairingScreen from "./PairingScreen";
 import { getDeviceInfo } from "@/lib/device";
 import SocketListener from "./SocketListener";
+import { useAuthStore } from "@/lib/store";
 
 export default function AuthWrapper({ children }: { children: React.ReactNode }) {
-
-    const [token, setToken] = useLocalStorage("token");
-    const [, setRemoteId] = useLocalStorage("remoteId");
-    const [, setHostInfo] = useLocalStorage("hostInfo");
-    const [, setSessionId] = useLocalStorage("sessionId");
+    const { token, setAuth, clearAuth } = useAuthStore()
     const [isMounted, setIsMounted] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const handler = useCallback((msg: any) => {
         if (msg.type === auth.sessionValid || msg.type === auth.pairSuccess) {
-            if (msg.type === auth.pairSuccess) {
-                setToken(msg.remoteToken);
-                setHostInfo(msg.hostInfo);
-                setRemoteId(msg.remoteId);
-                setSessionId(msg.sessionId);
-            }
+            if (msg.type === auth.pairSuccess)
+                setAuth({ token: msg.remoteToken, remoteId: msg.remoteId, hostInfo: msg.hostInfo, sessionId: msg.sessionId, })
             setIsAuthenticated(true);
         }
         if (msg.type === auth.sessionInvalid || msg.type === auth.pairFailed || msg.type === auth.remoteKicked) {
-            setToken(null);
-            setHostInfo(null);
-            setRemoteId(null);
-            setSessionId(null);
+            clearAuth();
             setIsAuthenticated(false);
         }
-    }, [setToken, setHostInfo, setRemoteId, setSessionId]);
+    }, [setAuth, clearAuth]);
 
     const { send, isConnected } = useSocket(handler);
 
@@ -41,11 +30,9 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         if (!isMounted || !isConnected || !token || isAuthenticated) return;
-        const validate = async () => {
-            const deviceInfo = await getDeviceInfo();
-            send({ type: auth.validateSession, remoteToken: token, ...deviceInfo });
-        }
-        validate();
+        getDeviceInfo().then(deviceInfo => {
+            send({ type: auth.validateSession, remoteToken: token, ...deviceInfo })
+        })
     }, [isMounted, token, isAuthenticated, send, isConnected]);
 
     if (!isMounted) return null;

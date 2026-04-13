@@ -1,9 +1,9 @@
 "use client"
 import Html5QrcodePlugin from "@/components/Html5QrcodePlugin"
-import { IoPhonePortraitOutline } from "react-icons/io5"
 import { useSocket } from "@/lib/websocket"
 import { auth } from "@/lib/constants"
 import { getDeviceInfo } from "@/lib/device"
+import { Icons } from "@/lib/icons"
 
 const PairingScreen = () => {
     const { send } = useSocket()
@@ -14,7 +14,7 @@ const PairingScreen = () => {
     return (
         <div className="p-4 flex flex-col items-center justify-center">
             <div className="relative bg-sky-500/20 dark:bg-sky-500/20 p-4 w-fit rounded-full mx-auto">
-                <IoPhonePortraitOutline className="text-4xl" />
+                <Icons.phone className="text-4xl" />
                 <div className="absolute inset-0 bg-sky-500/40 dark:bg-sky-500/40 rounded-[inherit] blur-xl" />
             </div>
             <h1 className="text-center font-bold text-2xl my-4">Connect remote</h1>

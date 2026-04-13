@@ -1,26 +1,15 @@
-import { IoVolumeLow } from "react-icons/io5"
-import { mediaControls } from "@/lib/feature"
-import { resolveIcon } from "@/lib/icons"
 import IconButton from "@/components/ui/IconButton"
 import SliderBar from "@/components/ui/SliderBar"
+import { Icons } from "@/lib/icons"
 
-const VolumeControl = () => {
-  const { volume, mute } = mediaControls.audio
-  const VolumeIcon = resolveIcon(volume.icon)
-  const MuteIcon = resolveIcon(mute.icon)
+const VolumeControl = ({ disabled }: { disabled: boolean }) => {
 
   return (
-    <div  className="mx-auto flex items-center gap-2">
-      {mute.isAvailable && MuteIcon && (
-        <IconButton label="Mute"><MuteIcon /></IconButton>
-      )}
-      <IconButton label="Volume down"><IoVolumeLow /></IconButton>
-      {volume.isAvailable && (
-        <SliderBar label="Volume bar" trackClass="bg-zinc-100" />
-      )}
-      {volume.isAvailable && VolumeIcon && (
-        <IconButton label="Volume up"><VolumeIcon /></IconButton>
-      )}
+    <div className="justify-center flex items-center gap-2">
+      <IconButton disabled={disabled} label="Mute"><Icons.volumeMute /></IconButton>
+      <IconButton disabled={disabled} label="Volume down"><Icons.volumeDown /></IconButton>
+      {!disabled && <SliderBar label="Volume bar" trackClass="bg-zinc-100" />}
+      <IconButton disabled={disabled} label="Volume up"><Icons.volumeUp /></IconButton>
     </div>
   )
 }
