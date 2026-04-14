@@ -1,4 +1,4 @@
-import logger from "@/config/logger";
+
 import { MESSAGE_TYPES } from "@/config/constants";
 import { hostToken, isSocketConnected, sessionIdentity, pairingKey, pairingKeyExpiry, pairingKeyCreatedAt, connectedDevices } from "@/utils/storage/storage";
 import { Remotes } from "@/utils/storage/remote";
@@ -52,13 +52,13 @@ export const receive = {
 
       case MESSAGE_TYPES.REMOTE_JOINED:
         if (!msg.id || !msg.sessionId) {
-          logger.error("Remote joined message missing required fields")
+          console.error("Remote joined message missing required fields")
           return;
         }
 
         // TODO: NOTIFY SERVER ON THIS
         if (msg.sessionId !== await sessionIdentity.getValue()) {
-          logger.error("Remote is not registered for this session")
+          console.error("Remote is not registered for this session")
           return;
         }
 
@@ -78,15 +78,13 @@ export const receive = {
         Notify.all()
         break;
       case MESSAGE_TYPES.SELECT_ACTIVE_TAB:
-        const tabSetResult = await Remotes.setTab(msg.remoteId, msg.tabId);
-        logger.debug("[TAB SET]: ", tabSetResult)
+        await Remotes.setTab(msg.remoteId, msg.tabId);
         break;
       case MESSAGE_TYPES.STATE_UPDATE:
         try {
-          const cmdResult = await executeCommand(msg);
-          logger.debug("[COMMAND RESPONSE]: ", cmdResult)
+          await executeCommand(msg);
         } catch (error) {
-          logger.debug("ERROR: ", error)
+          console.error("Error in executing command: ", error)
         }
         break;
       case MESSAGE_TYPES.MEDIA_BOOKMARK:
@@ -137,23 +135,19 @@ export const receive = {
 
 const Notify = {
   all: debounced(() => {
-    logger.info("[NOTIFY:ALL]", TabCache.getAll());
     forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_LIST, tabs: TabCache.getAll() });
   }),
   tab: debounced(async (tabId: number) => {
     try {
       const { data } = await TabCache.getMeta(tabId);
       forwardToOffscreen({ type: MESSAGE_TYPES.STATE_UPDATE, tabs: [data] });
-      logger.info("[NOTIFY:TAB]", data);
     } catch { }
   }),
   removed: debounced((tabId: number) => {
     forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_TAB_REMOVED, tabId });
-    logger.info("[NOTIFY:REMOVED]", tabId);
   }),
   created: debounced((tabId: number) => {
     forwardToOffscreen({ type: MESSAGE_TYPES.MEDIA_TAB_CREATED, tabId });
-    logger.info("[NOTIFY:CREATED]", tabId);
   }),
 }
 
@@ -168,9 +162,6 @@ export const listeners = {
       favIconUrl: t.favIconUrl,
       muted: t.mutedInfo?.muted,
     })));
-    if (result.added.length || result.removed.length) {
-      logger.debug("Startup sync:", result);
-    }
   },
   tabOnUpdated: () => {
     browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
@@ -194,7 +185,7 @@ export const listeners = {
           });
           Notify.all();
         } catch (error) {
-          logger.error("Error updating tab:", error)
+          console.error("Error updating tab:", error)
         }
       }
     });
@@ -213,7 +204,7 @@ export const listeners = {
           }
         }
       } catch (error) {
-        logger.error("Error removing tab:", error)
+        console.error("Error removing tab:", error)
       }
     });
   },
@@ -233,7 +224,7 @@ export const listeners = {
         });
         Notify.created(tab.id!);
       } catch (error) {
-        logger.error("Error creating tab:", error)
+        console.error("Error creating tab:", error)
       }
     });
   },
@@ -249,7 +240,6 @@ export const listeners = {
       muted: t.mutedInfo?.muted,
     })));
     if (result.added.length || result.removed.length) {
-      logger.debug("Reconciliation drift:", result);
       Notify.all();
     }
   }, 30_000)

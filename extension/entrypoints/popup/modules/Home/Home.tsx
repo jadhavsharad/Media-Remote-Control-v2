@@ -1,4 +1,4 @@
-import logger from "@/config/logger";
+
 import { MdManageAccounts, MdWifiTethering, MdWifiTetheringOff } from "react-icons/md";
 import { TbExternalLink } from "react-icons/tb";
 import { RiLinkM, RiRemoteControlLine } from "react-icons/ri";
@@ -7,12 +7,7 @@ import { isSocketConnected } from "@/utils/storage/storage";
 import { useStorageItem } from "../../hooks/useStorageItem";
 import { motion, AnimatePresence } from "framer-motion";
 
-const pulseRings = [
-  "w-2/6 top-1/2 -translate-y-1/2",
-  "w-4/6 top-1/2 -translate-y-1/2",
-  "w-full top-0",
-  "w-full scale-135 top-0",
-];
+const pulseRings = ["w-2/6 top-1/2 -translate-y-1/2", "w-4/6 top-1/2 -translate-y-1/2", "w-full top-0", "w-full scale-135 top-0",];
 
 const Home = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
   const [isSocketActive] = useStorageItem(isSocketConnected)

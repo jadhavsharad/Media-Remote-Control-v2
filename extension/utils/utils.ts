@@ -1,4 +1,4 @@
-import logger from "@/config/logger";
+
 
 const DELAY_MS: number = 200;
 
@@ -11,7 +11,7 @@ export const debounced = <T extends (...args: any[]) => any>(fn: T, delay: numbe
     timers.set(key, setTimeout(async () => {
       timers.delete(key);
       try { await fn(...args); }
-      catch (e) { logger.warn("Scheduled task failed", e); }
+      catch (e) { console.warn("Scheduled task failed", e); }
     }, delay));
   };
 }

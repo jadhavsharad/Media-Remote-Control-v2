@@ -1,7 +1,6 @@
 import { CHANNELS, MESSAGE_TYPES } from "@/config/constants"
 import { sendMessage } from "@/utils/messaging/message"
 import ReconnectingWebSocket from "reconnecting-websocket"
-import logger from "@/config/logger"
 
 let socket: ReconnectingWebSocket
 const socketURL = import.meta.env.VITE_WEBSOCKET_URL
@@ -14,7 +13,6 @@ const connect = () => {
 
 
     socket.onopen = () => {
-        logger.success("WebSocket connected")
         sendMessage({ channel: CHANNELS.FROM_OFFSCREEN, payload: { type: MESSAGE_TYPES.WS_OPEN } });
     }
 
@@ -23,13 +21,11 @@ const connect = () => {
     }
 
     socket.onclose = (event: { code: number, reason: string } = { code: 1006, reason: "Connection closed" }) => {
-        logger.warn("WebSocket disconnected", event.code, event.reason)
         sendMessage({ channel: CHANNELS.FROM_OFFSCREEN, payload: { type: MESSAGE_TYPES.WS_CLOSED } });
     }
 
     socket.onerror = (error) => {
         sendMessage({ channel: CHANNELS.FROM_OFFSCREEN, payload: { type: MESSAGE_TYPES.WS_ERROR, error: error.message } });
-        logger.error("WebSocket error: ", error.message)
     }
 
 }
@@ -63,8 +59,6 @@ browser.runtime.onMessage.addListener((msg) => {
         sendMessage({ channel: CHANNELS.FROM_OFFSCREEN, payload: { type: MESSAGE_TYPES.WS_ERROR, error: "WebSocket is not open" } });
         return;
     }
-
-    logger.debug("Sending message to server: ", msg.payload);
     socket.send(JSON.stringify({ ...msg.payload, timestamp: Date.now() }));
 });
 

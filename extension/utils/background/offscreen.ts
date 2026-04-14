@@ -1,4 +1,3 @@
-import logger from "@/config/logger";
 import { CHANNELS } from "@/config/constants";
 import { sendMessage } from "@/utils/messaging/message";
 
@@ -24,7 +23,6 @@ export const setupOffscreenDocument = async () => {
       justification: 'Persistent Websocket Connection',
     });
     await creating;
-    logger.debug("Offscreen document created successfully");
     creating = null;
   }
 }

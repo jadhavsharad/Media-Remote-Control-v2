@@ -1,6 +1,5 @@
 import { CHANNELS, MEDIA_STATE, MESSAGE_TYPES } from "@/config/constants";
 import { isValidMedia } from "@/utils/validators/validators";
-import logger from "@/config/logger";
 import { sendMessage } from "../messaging/message";
 
 const state = {
@@ -75,11 +74,11 @@ export const Media = {
     const container = media.closest('div') || media.parentElement;
 
     if (container && state.mediaContainer !== container) {
-      logger.debug("New media container found");
+      console.debug("New media container found");
       state.observer?.disconnect()
       state.mediaContainer = container;
       Media.observer(container);
-      logger.debug("Media container updated");
+      console.debug("Media container updated");
     }
     return true
   },
@@ -91,14 +90,13 @@ export const Media = {
   },
   execute(key: string, value: unknown): { ok: boolean; reason: string } {
     if (!state.currentMedia?.isConnected) {
-      logger.debug("No media element found on page");
+      console.debug("No media element found on page");
       return { ok: false, reason: "No media found" };
     }
 
     const handler = handlers[key];
 
     if (!handler) {
-      logger.debug("Unknown command key:", key);
       return { ok: false, reason: `Unknown key: ${key}` };
     }
 
@@ -106,7 +104,6 @@ export const Media = {
       handler(state.currentMedia, value);
       return { ok: true, reason: "Command executed successfully" };
     } catch (error: any) {
-      logger.debug("Command execution failed:", error);
       return { ok: false, reason: error?.reason ?? "Execution failed" };
     }
   },
