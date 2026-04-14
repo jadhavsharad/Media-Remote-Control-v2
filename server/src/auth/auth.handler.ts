@@ -84,6 +84,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
   // --- PAIRING EXCHANGE (Remote entering code) ---
   if (msg.type === constants.auth.exchangePairKey) {
     if (meta.role !== null) {
+      Socket.send(ws, { type: constants.auth.pairFailed, message: "Already authenticated socket attempting to pair, please refresh page" });
       logger.warn("Already authenticated socket attempting to pair");
       return true;
     }
@@ -91,26 +92,28 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     const { modelName, platform, browser, code } = msg as { modelName: unknown, platform: unknown, browser: unknown, code: unknown };
 
     if (!isNonEmptyString(code) || !pairCodeRegex.test(code)) {
-      Socket.send(ws, { type: constants.auth.pairFailed });
+      Socket.send(ws, { type: constants.auth.pairFailed, message: "Invalid pair code format, please try again" });
       logger.warn("Invalid pair code format");
       return true;
     }
 
     if (!isNonEmptyString(modelName) || !isNonEmptyString(platform) || !isNonEmptyString(browser)) {
-      Socket.send(ws, { type: constants.auth.pairFailed });
+      Socket.send(ws, { type: constants.auth.pairFailed, message: "Invalid device info fields, please try again" });
       logger.warn("Invalid device info fields");
       return true;
     }
 
     const sessionId = store.resolvePairCode(code);
     if (!sessionId) {
-      Socket.send(ws, { type: constants.auth.pairFailed });
+      Socket.send(ws, { type: constants.auth.pairFailed, message: "Invalid pair code, please try again" });
+      logger.warn("Invalid pair code");
       return true;
     }
 
     const session = await store.getSession(sessionId);
     if (!session) {
-      Socket.send(ws, { type: constants.auth.pairFailed });
+      Socket.send(ws, { type: constants.auth.pairFailed, message: "Session not found, please try valid session." });
+      logger.warn("Session not found");
       return true;
     }
 
@@ -151,27 +154,27 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
 
     const remoteToken = msg.remoteToken;
     if (!isNonEmptyString(remoteToken)) {
-      Socket.send(ws, { type: constants.auth.sessionInvalid });
+      Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Invalid remoteToken, please try again" });
       logger.warn("Invalid remoteToken");
       return true;
     }
 
     if (!isNonEmptyString(msg.modelName as unknown) || !isNonEmptyString(msg.platform as unknown) || !isNonEmptyString(msg.browser as unknown)) {
-      Socket.send(ws, { type: constants.auth.sessionInvalid });
+      Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Invalid device info in session validation, please try again" });
       logger.warn("Invalid device info in session validation");
       return true;
     }
 
     const identity = await store.getRemote(remoteToken);
     if (!identity || t > Number(identity.expiresAt) || (msg.modelName !== identity.modelName || msg.platform !== identity.platform || msg.browser !== identity.browser)) {
-      Socket.send(ws, { type: constants.auth.sessionInvalid });
+      Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Session invalid, please try again" });
       logger.warn("Session invalid");
       return true;
     }
 
     const session = await store.getSession(identity.sessionId);
     if (!session) {
-      Socket.send(ws, { type: constants.auth.sessionInvalid });
+      Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Session invalid, please try again" });
       logger.warn("Session invalid — session not found");
       return true;
     }
@@ -207,7 +210,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     // Inform the remote client before disconnecting
     const remoteWs = store.getRemoteSocket(sessionId, remoteId);
     if (remoteWs) {
-      Socket.send(remoteWs, { type: constants.auth.remoteKicked });
+      Socket.send(remoteWs, { type: constants.auth.remoteKicked, message: "You have been kicked by the host" });
       Socket.close(remoteWs, 4000, "Kicked by host");
     }
 

@@ -20,6 +20,7 @@ export const MESSAGE_TYPES = {
   HOST_RECONNECT: "session.host_reconnect", // CHECK
   KICK_REMOTE: "session.kick_remote",
   REMOTE_KICKED: "session.remote_kicked",
+  NEW_TAB: "session.new_tab",
 
   // connection
   WS_OPEN: "connection.ws_open", // CHECK
@@ -33,6 +34,7 @@ export const MESSAGE_TYPES = {
   SELECT_ACTIVE_TAB: "media.select_tab", // CHECK
   MEDIA_TAB_REMOVED: "media.tab_removed", // CHECK
   MEDIA_TAB_CREATED: "media.tab_created", // CHECK
+  MEDIA_BOOKMARK: "media.bookmark",
 
   // controls
   STATE_UPDATE: "control.state_update", // CHECK
@@ -48,7 +50,7 @@ export const CHANNELS = {
   TO_POPUP: "send.to.popup", // CHECK
   TO_OFFSCREEN: "send.to.offscreen", // CHECK
 
-  FROM_BACKGROUND: "receive.from.background", 
+  FROM_BACKGROUND: "receive.from.background",
   FROM_CONTENT_SCRIPT: "receive.from.content_script",
   FROM_POPUP: "receive.from.popup", // CHECK
   FROM_OFFSCREEN: "receive.from.offscreen", // CHECK
@@ -62,8 +64,7 @@ export const MEDIA_STATE = {
   TITLE: "title",             // values: string
   VOLUME: "volume",           // values: number (0-100)
   ENDED: "ended",             // values: true, false
-  METADATA: "metadata",       // values: true, false
-} ;
+};
 
 export const supportedPlatforms = [
   "youtube.com",
@@ -73,7 +74,6 @@ export const supportedPlatforms = [
   "jiohotstar.com",
   "sonyliv.com",
   "amazon.com",
-  "mxplayer.com",
   "vimeo.com",
   "jiosaavn.com",
   "apple.com",
@@ -81,7 +81,7 @@ export const supportedPlatforms = [
 ]
 
 export const platforms = supportedPlatforms.map(
-(domain) => `https://*.${domain}/*`
+  (domain) => `https://*.${domain}/*`
 );
 
 export const activeIcons = {

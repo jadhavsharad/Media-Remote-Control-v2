@@ -89,6 +89,18 @@ export const receive = {
           logger.debug("ERROR: ", error)
         }
         break;
+      case MESSAGE_TYPES.MEDIA_BOOKMARK:
+        const tab = await browser.tabs.get(msg.tabId);
+        if (!tab.url) throw { ok: false, reason: "Tab URL not found" };
+        let bookmarkUrl = tab.url;
+        await browser.bookmarks.create({
+          title: tab.title || "Bookmark by Media Remote Control Extension",
+          url: bookmarkUrl
+        });
+        break;
+      case MESSAGE_TYPES.NEW_TAB:
+        await handleNewTab(msg.url)
+        break;
     }
   },
   popup: async (msg: any) => {
@@ -101,7 +113,7 @@ export const receive = {
     const { type, intent, key, value, ...mediaMeta } = msg;
     const update = { ...mediaMeta, ...(key !== undefined ? { [key]: value } : {}) };
 
-    const result = await TabCache.setMediaMeta(tabId, { ...update, mediaArtwork: maxResImage(sender.tab.url) });
+    const result = await TabCache.setMediaMeta(tabId, { ...update, mediaArtwork: maxResImage(sender.tab.url, update.mediaArtwork) });
 
     if (!result.ok) {
       // Tab not registered — auto-register from sender.tab if it's a media tab
@@ -113,7 +125,7 @@ export const receive = {
           favIconUrl: sender.tab.favIconUrl,
           muted: sender.tab.mutedInfo?.muted,
         });
-        await TabCache.setMediaMeta(tabId, { ...update, mediaArtwork: maxResImage(sender.tab.url) });
+        await TabCache.setMediaMeta(tabId, { ...update, mediaArtwork: maxResImage(sender.tab.url, update.mediaArtwork) });
       } else {
         return;
       }
@@ -241,4 +253,17 @@ export const listeners = {
       Notify.all();
     }
   }, 30_000)
+}
+
+async function handleNewTab(url: string) {
+  if (!url) return;
+  let targetUrl = url;
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    targetUrl = "https://" + url;
+  }
+  try {
+    await browser.tabs.create({ url: targetUrl, active: true });
+  } catch (err) {
+    console.error("Failed to open new tab:", err);
+  }
 }

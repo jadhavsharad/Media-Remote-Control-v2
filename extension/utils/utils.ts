@@ -15,31 +15,28 @@ export const debounced = <T extends (...args: any[]) => any>(fn: T, delay: numbe
     }, delay));
   };
 }
-export const maxResImage = (src: string) => {
-    if (!src) return src
+export const maxResImage = (src: string, fallback?: string) => {
+  if (!src) return src
 
-    try {
-        const url = new URL(src)
-        const hostname = url.hostname
+  try {
+    const url = new URL(src)
+    const hostname = url.hostname
 
-        if (hostname.includes("youtube.com")) {
-            const videoId = url.searchParams.get("v")
-            if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-        }
-
-        if (hostname.includes("youtu.be")) {
-            const videoId = url.pathname.slice(1)
-            if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-        }
-
-        if (hostname.includes("youtube.com") && url.pathname.startsWith("/embed/")) {
-            const videoId = url.pathname.split("/embed/")[1]?.split("/")[0]
-            if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-        }
-
-    } catch {
-
+    if (hostname.includes("youtube.com")) {
+      if (hostname.includes("youtu.be")) {
+        const videoId = url.pathname.slice(1)
+        if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+      }
+      if (hostname.includes("youtube.com") && url.pathname.startsWith("/embed/")) {
+        const videoId = url.pathname.split("/embed/")[1]?.split("/")[0]
+        if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+      }
+      const videoId = url.searchParams.get("v")
+      if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
     }
+  } catch {
 
-    return src
+  }
+
+  return fallback
 }

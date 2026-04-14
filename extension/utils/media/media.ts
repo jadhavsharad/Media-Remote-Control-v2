@@ -10,7 +10,6 @@ const state = {
   mediaContainer: null as HTMLElement | null,
   interval: null as ReturnType<typeof setInterval> | null, // CHECK
   debounce: null as ReturnType<typeof setTimeout> | null,
-  lastReport: 0 as number
 }
 
 // COMMAND HANDLERS — KEYED BY MEDIA_STATE
@@ -27,7 +26,7 @@ const handlers: Record<string, (media: HTMLMediaElement, value: any) => void> = 
   },
 
   [MEDIA_STATE.VOLUME]: (media, value) => {
-    const vol = Math.max(0, Math.min(1, Number(value) / 100));
+    const vol = Math.max(0, Math.min(1, Number(value)));
     media.volume = vol;
   },
 
@@ -141,10 +140,10 @@ const utils = {
     return {
       playback: navigator.mediaSession.playbackState,
       info: {
-        mediaTitle: navigator.mediaSession.metadata?.title || 'Unknown',
-        mediaArtist: navigator.mediaSession.metadata?.artist || 'Unknown',
-        mediaAlbum: navigator.mediaSession.metadata?.album || 'Unknown',
-        mediaArtwork: navigator.mediaSession.metadata?.artwork?.[navigator.mediaSession.metadata?.artwork.length - 1].src || 'Unknown',
+        mediaTitle: navigator.mediaSession.metadata?.title || 'Unknown Title',
+        mediaArtist: navigator.mediaSession.metadata?.artist || 'Unknown Artist',
+        mediaAlbum: navigator.mediaSession.metadata?.album || 'Unknown Album',
+        mediaArtwork: navigator.mediaSession.metadata?.artwork?.[navigator.mediaSession.metadata?.artwork.length - 1].src || null,
       }
     }
   }
@@ -160,9 +159,7 @@ const listeners = {
     media.addEventListener("pause", event.playback)
     media.addEventListener("volumechange", event.volumechange)
     media.addEventListener("ended", event.ended)
-    media.addEventListener("timeupdate", event.timeupdate)
     media.addEventListener("durationchange", event.durationchange)
-    media.addEventListener("seeking", event.seeking)
 
     report.All()
   },
@@ -173,9 +170,7 @@ const listeners = {
     state.currentMedia?.removeEventListener("pause", event.playback)
     state.currentMedia?.removeEventListener("volumechange", event.volumechange)
     state.currentMedia?.removeEventListener("ended", event.ended)
-    state.currentMedia?.removeEventListener("timeupdate", event.timeupdate)
     state.currentMedia?.removeEventListener("durationchange", event.durationchange)
-    state.currentMedia.removeEventListener("seeking", event.seeking)
     state.currentMedia = null;
     report.Once(MEDIA_STATE.PLAYBACK, "IDLE");
   },
@@ -199,7 +194,6 @@ const report = {
     event.playback()
     event.volumechange()
     event.ended()
-    event.timeupdate()
     event.durationchange()
   }
 }
@@ -210,15 +204,7 @@ const event = {
     event.ended();
   },
   volumechange() {
-    report.Once(MEDIA_STATE.VOLUME, state.currentMedia?.volume)
-  },
-  timeupdate() {
-    const time = state.currentMedia?.currentTime
-    if (!isFinite(time!) || time! < 0) return
-    const now = Date.now()
-    if (now - state.lastReport < 2000) return
-    state.lastReport = now
-    report.Once(MEDIA_STATE.TIME, state.currentMedia?.currentTime)
+    report.Once(MEDIA_STATE.VOLUME, state.currentMedia?.volume.toFixed(1))
   },
   durationchange() {
     const duration = state.currentMedia?.duration
@@ -228,11 +214,4 @@ const event = {
   ended() {
     report.Once(MEDIA_STATE.ENDED, state.currentMedia?.ended)
   },
-  seeking() {
-    state.lastReport = 0
-    const time = state.currentMedia?.currentTime
-    if (time !== undefined && Number.isFinite(time) && time >= 0) {
-      report.Once(MEDIA_STATE.TIME, time);
-    }
-  }
 }

@@ -36,6 +36,7 @@ const media = Object.freeze({
     selectTab: "media.select_tab",
     tabCreated: "media.tab_created",
     tabRemoved: "media.tab_removed",
+    bookmark:"media.bookmark"
 });
 
 const control = Object.freeze({
