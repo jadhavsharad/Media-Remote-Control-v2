@@ -4,7 +4,7 @@ import { FaHome, FaVolumeMute } from "react-icons/fa"
 import { FaBackward, FaForward, FaGithub, FaLink, FaPause, FaPlay, FaStop, FaVolumeHigh, FaVolumeLow } from "react-icons/fa6"
 import { IoIosBuild } from "react-icons/io"
 import { IoGrid, IoLayers, IoMoon, IoPhonePortraitOutline, IoSettings, IoSunny } from "react-icons/io5"
-import { TbBookmarksFilled, TbCopy, TbRefresh } from "react-icons/tb"
+import { TbBookmarksFilled, TbCopy, TbCopyCheck, TbRefresh } from "react-icons/tb"
 import { FaChrome, FaWindows, FaLinux, FaApple, FaBrave, FaEdge, FaFirefox, FaQuestion, FaOpera, FaYandex, FaAndroid, } from "react-icons/fa6"
 
 export const Icons = {
@@ -23,6 +23,7 @@ export const Icons = {
   // actions
   bookmark: TbBookmarksFilled,
   copy: TbCopy,
+  copied: TbCopyCheck,
   refresh: TbRefresh,
 
   // theme

@@ -50,7 +50,7 @@ const ConnectionInfo = () => {
           <p className="text-xs text-zinc-400 font-semibold">Extension Version: {hostInfo?.extensionVersion}</p>
           <p className="text-xs text-zinc-400 truncate font-semibold">Session id: {sessionId}</p>
         </div>
-        <button onClick={clearAuth} className="bg-red-500/20 text-rose-500 py-2 text-xs font-bold w-full rounded-lg cursor-pointer">Unpair</button>
+        <button onClick={() => { clearAuth(); window.location.reload(); }} className="bg-red-500/20 text-rose-500 py-2 text-xs font-bold w-full rounded-lg cursor-pointer">Unpair</button>
       </Card>
     </div>
   )

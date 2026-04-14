@@ -9,8 +9,9 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useRemoteStore } from '@/lib/store'
 import { MediaTab } from '@/lib/types'
 import { TabCard } from '@/components/TabCard'
+import PageTransition from '@/components/PageTransition'
 
-const page = () => {
+const TabsPage = () => {
     const tabs = useRemoteStore(s => s.tabs)
     const activeTab = useRemoteStore(s => s.activeTab)
     const setActiveTab = useRemoteStore(s => s.setActiveTab)
@@ -30,7 +31,7 @@ const page = () => {
     const reload = () => window.location.reload()
 
     return (
-
+      <PageTransition>
         <div className='p-4 flex flex-col gap-4 '>
             <Header title='Media sources' />
             <div className='flex justify-between items-center w-full'>
@@ -50,16 +51,16 @@ const page = () => {
 
             {otherTabs && otherTabs.length > 0 &&
                 otherTabs.map((tab: MediaTab) => (
-                    <motion.div key={tab.tabId} transition={{ type: "spring" }} onClick={() => selectActiveTab(tab.tabId)}>
+                    <motion.div key={tab.tabId} transition={{ type: "spring", delay: 0.1 * tab.tabId }} onClick={() => selectActiveTab(tab.tabId)}>
                         <TabCard tab={tab} />
                     </motion.div>
                 ))}
             {otherTabs && otherTabs.length === 0 && <div className='flex items-center justify-center h-full'>No other tabs found</div>}
 
         </div >
-
+      </PageTransition>
     )
 }
 
-export default page
+export default TabsPage
 

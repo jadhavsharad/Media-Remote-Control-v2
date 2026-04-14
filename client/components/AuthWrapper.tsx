@@ -11,14 +11,26 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     const { token, setAuth, clearAuth } = useAuthStore()
     const [isMounted, setIsMounted] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [pairError, setPairError] = useState<string | null>(null);
+    const [isPairing, setIsPairing] = useState(false);
 
     const handler = useCallback((msg: any) => {
+        console.log(msg)
         if (msg.type === auth.sessionValid || msg.type === auth.pairSuccess) {
             if (msg.type === auth.pairSuccess)
                 setAuth({ token: msg.remoteToken, remoteId: msg.remoteId, hostInfo: msg.hostInfo, sessionId: msg.sessionId, })
+            setPairError(null);
+            setIsPairing(false);
             setIsAuthenticated(true);
         }
-        if (msg.type === auth.sessionInvalid || msg.type === auth.pairFailed || msg.type === auth.remoteKicked) {
+        if (msg.type === auth.pairFailed) {
+            setPairError(msg.message || "Pairing failed");
+            setIsPairing(false);
+            clearAuth();
+            setIsAuthenticated(false);
+        }
+        if (msg.type === auth.sessionInvalid || msg.type === auth.remoteKicked) {
+            setIsPairing(false);
             clearAuth();
             setIsAuthenticated(false);
         }
@@ -37,7 +49,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
     if (!isMounted) return null;
 
-    if (!token) return <PairingScreen />
+    if (!token) return <PairingScreen error={pairError} onClearError={() => setPairError(null)} isPairing={isPairing} onPairingStart={() => setIsPairing(true)} />
 
     if (!isConnected || !isAuthenticated) {
         return (

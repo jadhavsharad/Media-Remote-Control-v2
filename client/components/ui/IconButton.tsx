@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-const base = "p-4 flex item-center justify-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 duration-300 transform transition-all cursor-pointer"
+const base = "p-4 flex item-center justify-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 duration-300 transform transition-all cursor-pointer active:scale-95"
 
 interface IconButtonProps {
   label: string

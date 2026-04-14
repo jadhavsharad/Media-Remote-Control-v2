@@ -6,10 +6,10 @@ import { AnimatePresence, motion } from "framer-motion"
 interface PlayerControlsProps {
   playback: string
   handlePlayback: () => void
-  handleBackward: () => void
-  handleForward: () => void
   handleCopy: () => void
   handleBookmark: () => void
+  copied: boolean
+  bookmarked?: boolean
 }
 
 const iconVariants = {
@@ -18,7 +18,7 @@ const iconVariants = {
   exit: { opacity: 0, scale: 0.75, rotate: 30, transition: { duration: 0.1 } },
 }
 
-const PlayerControls = ({ playback, handlePlayback, handleBackward, handleForward, handleCopy, handleBookmark }: PlayerControlsProps) => {
+const PlayerControls = ({ playback, handlePlayback, handleCopy, handleBookmark, copied = false, bookmarked = false }: PlayerControlsProps) => {
   const isPlaying = playback === "PLAYING"
   const isPaused = playback === "PAUSED"
   const isIdle = playback === "IDLE"
@@ -28,14 +28,14 @@ const PlayerControls = ({ playback, handlePlayback, handleBackward, handleForwar
 
   return (
     <div className="mx-auto flex items-center justify-between gap-2">
-      <IconButton disabled={isIdle} label="Bookmark the site">
-        <Icons.bookmark />
+      <IconButton onClick={handleBookmark} disabled={isIdle} label="Bookmark the site">
+        <Icons.bookmark className={bookmarked ? "text-sky-500 transition-colors duration-200" : "transition-colors duration-200"} />
       </IconButton>
 
       <div className="flex items-center gap-2 w-fit mx-auto">
-        <IconButton onClick={handleBackward} disabled={isIdle} label="Previous" scale>
+        {/* <IconButton onClick={handleBackward} disabled={isIdle} label="Previous" scale>
           <Icons.backward />
-        </IconButton>
+        </IconButton> */}
 
         <IconButton onClick={handlePlayback} label={isPlaying ? "Pause" : "Play"} scale className="text-4xl">
           <AnimatePresence mode="popLayout" initial={false}>
@@ -45,13 +45,17 @@ const PlayerControls = ({ playback, handlePlayback, handleBackward, handleForwar
           </AnimatePresence>
         </IconButton>
 
-        <IconButton onClick={handleForward} disabled={isIdle} label="Next" scale>
+        {/* <IconButton onClick={handleForward} disabled={isIdle} label="Next" scale>
           <Icons.forward />
-        </IconButton>
+        </IconButton> */}
       </div>
 
       <IconButton onClick={handleCopy} disabled={isIdle} label="Copy the site URL">
-        <Icons.copy />
+        {
+          copied ? <Icons.copied />
+            :
+            <Icons.copy />
+        }
       </IconButton>
     </div>
   )

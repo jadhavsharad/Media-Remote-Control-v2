@@ -16,6 +16,7 @@ export const media = Object.freeze({
     stateUpdate: "control.state_update",
     tabCreated: "media.tab_created",
     tabRemoved: "media.tab_removed",
+    bookmark:"media.bookmark",
     intent: {
         set: "control.set",
         report: "control.report"
@@ -27,5 +28,9 @@ export const media = Object.freeze({
         time: "currentTime",
         duration: "duration",
         title: "title",
+        bookmark:"bookmark"
+    },
+    session:{
+        launchApp:"session.new_tab"
     }
 })
