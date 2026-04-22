@@ -4,18 +4,8 @@
 // REUSABLE FUNCTION TO SEND MESSAGES TO SERVER, OFFSCREEN, POPUP, CONTENT SCRIPT
 export const sendMessage = async ({ channel, payload }: { channel: string, payload: any }) => {
   try {
-    if (!browser?.runtime?.id) {
-      console.error(`Context invalidated. Dropped message to channel: ${channel}`);
-      return;
-    }
     await browser.runtime.sendMessage({ channel, payload });
-  } catch (e: any) {
-    if (e?.message?.includes("Extension context invalidated")) {
-      console.error(`Context invalidated. Dropped message to channel: ${channel}`);
-    } else {
-      console.error("Error:", e);
-    }
-  }
+  } catch (e: any) { }
 }
 
 // REUSABLE FUNCTION TO RECEIVE MESSAGES FROM (SERVER, OFFSCREEN, POPUP, CONTENT SCRIPT)

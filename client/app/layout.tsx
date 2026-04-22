@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import AuthWrapper from "@/components/AuthWrapper";
+import AppShell from "@/components/AppShell";
 import Navigation from "@/components/Navigation";
 import ThemeProvider from "@/components/ThemeProvider";
 
@@ -21,10 +22,12 @@ export default function RootLayout({
     <html lang="en" className={cn("h-full", "antialiased", dmSans.variable)} suppressHydrationWarning>
       <body className="min-h-svh w-full min-w-xs md:max-w-sm mx-auto flex flex-col bg-zinc-950 font-sans relative pb-24">
         <ThemeProvider>
-          <AuthWrapper>
-            {children}
-            <Navigation className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50" />
-          </AuthWrapper>
+          <AppShell>
+            <AuthWrapper>
+              {children}
+              <Navigation className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50" />
+            </AuthWrapper>
+          </AppShell>
         </ThemeProvider>
       </body>
     </html>

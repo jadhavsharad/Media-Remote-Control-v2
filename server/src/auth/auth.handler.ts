@@ -68,6 +68,13 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     }
 
     Socket.send(ws, { type: constants.auth.hostRegistered, sessionId: sessionId, hostToken, remotes: remotes });
+
+    // Notify all remotes that host is back online
+    const remoteSockets = store.getAllRemoteSockets(sessionId!);
+    for (const remote of remoteSockets) {
+      Socket.send(remote, { type: constants.auth.hostReconnected });
+    }
+
     return true;
   }
 
@@ -139,6 +146,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
       remoteToken,
       remoteId: remoteIdentityId,
       sessionId,
+      hostOnline: !!store.getHostSocket(sessionId),
       hostInfo: { os: session.hostOS, browser: session.hostBrowser, extensionVersion: session.hostExtensionVersion, },
     });
 
@@ -184,6 +192,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     Socket.send(ws, {
       type: constants.auth.sessionValid,
       sessionId: identity.sessionId,
+      hostOnline: !!store.getHostSocket(identity.sessionId),
       hostInfo: {
         os: session.hostOS,
         browser: session.hostBrowser,

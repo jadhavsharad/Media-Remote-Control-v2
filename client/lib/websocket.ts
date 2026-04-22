@@ -23,13 +23,13 @@ ws.onmessage = (evt) => {
 
 const send = (msg: unknown) => { if (ws.readyState === 1) ws.send(JSON.stringify(msg)) };
 const listen = (callback: Handler) => { subs.add(callback); return () => subs.delete(callback); };
-const socketState = (callback: Handler) => { state.add(callback); return () => state.delete(callback); };
+export const socketState = (callback: Handler) => { state.add(callback); return () => state.delete(callback); };
 
 
 export function useSocket(callback?: (msg: any) => void) {
     const setConnected = useRemoteStore(s => s.setConnected)
     useEffect(() => {
-        const stop = socketState(setConnected)
+        const stop = socketState((readyState) => setConnected(readyState === 1))
         setConnected(ws.readyState === 1)
         return () => { stop() }
     }, [setConnected])

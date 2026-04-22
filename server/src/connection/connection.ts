@@ -1,4 +1,5 @@
 import Socket from "../socket/socket";
+import constants from "../config/constants";
 import utils from "../shared/utils";
 import logger from "../config/logger";
 import type { Store } from "../store/store";
@@ -18,9 +19,12 @@ function ConnectionManager(store: Store) {
       if (meta.role === "HOST") {
         if (store.isHostValid(meta.sessionId, meta.socketId)) {
           store.clearHost(meta.sessionId);
+          const remotes = store.getAllRemoteSockets(meta.sessionId);
+          for (const remote of remotes) {
+            Socket.send(remote, { type: constants.auth.hostDisconnected });
+          }
         }
         logger.warn(`Host disconnected from session ${meta.sessionId}`);
-        // TODO: notify remotes
       }
 
       if (meta.role === "REMOTE") {

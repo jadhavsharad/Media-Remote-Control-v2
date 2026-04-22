@@ -1,6 +1,6 @@
 
 
-const DELAY_MS: number = 200;
+const DELAY_MS: number = 205;
 
 export const debounced = <T extends (...args: any[]) => any>(fn: T, delay: number = DELAY_MS) => {
   const timers = new Map<string, NodeJS.Timeout>();

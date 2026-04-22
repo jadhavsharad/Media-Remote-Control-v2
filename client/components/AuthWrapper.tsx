@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSocket } from "@/lib/websocket";
 import { auth } from "@/lib/constants";
 import PairingScreen from "./PairingScreen";
+import HostOffline from "./HostOffline";
 import { getDeviceInfo } from "@/lib/device";
 import SocketListener from "./SocketListener";
 import { useAuthStore } from "@/lib/store";
@@ -11,6 +12,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     const { token, setAuth, clearAuth } = useAuthStore()
     const [isMounted, setIsMounted] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [hostOnline, setHostOnline] = useState(true);
     const [pairError, setPairError] = useState<string | null>(null);
     const [isPairing, setIsPairing] = useState(false);
 
@@ -22,6 +24,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
             setPairError(null);
             setIsPairing(false);
             setIsAuthenticated(true);
+            setHostOnline(msg.hostOnline ?? true);
         }
         if (msg.type === auth.pairFailed) {
             setPairError(msg.message || "Pairing failed");
@@ -33,6 +36,13 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
             setIsPairing(false);
             clearAuth();
             setIsAuthenticated(false);
+            
+        }
+        if (msg.type === auth.hostDisconnected) {
+            setHostOnline(false);
+        }
+        if (msg.type === auth.hostReconnected) {
+            setHostOnline(true);
         }
     }, [setAuth, clearAuth]);
 
@@ -59,6 +69,8 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
             </div>
         );
     }
+
+    if (!hostOnline) return <HostOffline />;
 
     if (isAuthenticated) { return <><SocketListener />{children}</>; }
 

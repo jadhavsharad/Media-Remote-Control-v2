@@ -8,6 +8,8 @@ export const auth = Object.freeze({
     sessionValid: "session.valid",
     sessionInvalid: "session.invalid",
     remoteKicked: "session.remote_kicked",
+    hostDisconnected: "session.host_disconnected",
+    hostReconnected: "session.host_reconnected",
 })
 
 export const media = Object.freeze({
