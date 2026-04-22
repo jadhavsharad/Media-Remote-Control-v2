@@ -52,16 +52,16 @@ export const receive = {
 
       case MESSAGE_TYPES.REMOTE_JOINED:
         if (!msg.id || !msg.sessionId) {
-          console.error("Remote joined message missing required fields")
+          console.debug("Remote joined message missing required fields")
           return;
         }
 
         // TODO: NOTIFY SERVER ON THIS
         if (msg.sessionId !== await sessionIdentity.getValue()) {
-          console.error("Remote is not registered for this session")
+          console.debug("Remote is not registered for this session")
           return;
         }
-
+        
         if (msg.invalidateCode) {
           await pairingKey.removeValue()
           await pairingKeyExpiry.removeValue()
@@ -84,7 +84,7 @@ export const receive = {
         try {
           await executeCommand(msg);
         } catch (error) {
-          console.error("Error in executing command: ", error)
+          console.debug("Error in executing command: ", error)
         }
         break;
       case MESSAGE_TYPES.MEDIA_BOOKMARK:
@@ -185,7 +185,7 @@ export const listeners = {
           });
           Notify.all();
         } catch (error) {
-          console.error("Error updating tab:", error)
+          console.debug("Error updating tab:", error)
         }
       }
     });
@@ -204,7 +204,7 @@ export const listeners = {
           }
         }
       } catch (error) {
-        console.error("Error removing tab:", error)
+        console.debug("Error removing tab:", error)
       }
     });
   },
@@ -224,7 +224,7 @@ export const listeners = {
         });
         Notify.created(tab.id!);
       } catch (error) {
-        console.error("Error creating tab:", error)
+        console.debug("Error creating tab:", error)
       }
     });
   },
@@ -254,6 +254,6 @@ async function handleNewTab(url: string) {
   try {
     await browser.tabs.create({ url: targetUrl, active: true });
   } catch (err) {
-    console.error("Failed to open new tab:", err);
+    console.debug("Failed to open new tab:", err);
   }
 }

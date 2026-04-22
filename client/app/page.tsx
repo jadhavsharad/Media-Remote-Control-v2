@@ -77,9 +77,9 @@ const Page = () => {
           activeTab ?
             <div>
               <div className=" absolute saturate-200 scale-110 opacity-60 -z-10 blur-[128px]">
-                <MediaCover src={activeTab?.mediaArtwork || ""} />
+                <MediaCover src={activeTab?.mediaArtwork || ""} favicon={activeTab?.favIconUrl} />
               </div>
-              <MediaCover src={activeTab?.mediaArtwork || ""} />
+              <MediaCover src={activeTab?.mediaArtwork || ""} favicon={activeTab?.favIconUrl} />
               <Divider size="xl" />
               <MediaMetadata title={activeTab?.mediaTitle || ""} artist={activeTab?.mediaArtist || ""} album={activeTab?.mediaAlbum || ""} />
               <p className="text-xs text-center text-zinc-500 mt-2">Duration: {formatTime(totalTime)}</p>
@@ -89,6 +89,13 @@ const Page = () => {
               <VolumeControl volumeDown={volumeDown} volumeUp={volumeUp} handleMute={handleMute} ismute={activeTab.muted} volume={volume || 0} disabled={playback === 'IDLE'} />
               <Divider size="lg" />
               <CurrentTabView title={activeTab?.title} url={activeTab?.url || ""} />
+              {
+                activeTab.tabId && playback === "IDLE" && (
+                  <>
+                    <p className="text-center text-sm text-zinc-500 mt-2"> Controls Not supported for this tab </p>
+                  </>
+                )
+              }
             </div>
             :
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="capitalize text-center flex flex-col items-center justify-center gap-4 py-12">

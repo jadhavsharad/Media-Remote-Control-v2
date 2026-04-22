@@ -21,7 +21,7 @@ export const TabCard = ({ tab }: { tab: MediaTab }) => {
                 </motion.div>
                 <motion.div className='flex gap-2 flex-col w-fit overflow-hidden'>
                     <div className='flex gap-2 items-center text-xs bg-black/20 w-fit h-fit py-1 px-2 rounded-full truncate text-nowrap'>
-                        <Image loading='eager' src={tab.url ? `https://www.google.com/s2/favicons?sz=64&domain=${new URL(tab.url)}` : tab.favIconUrl} alt="source" width={512} height={512} className='w-3 aspect-square object-contain' />
+                        <Image loading='eager' src={tab.url ? `https://www.google.com/s2/favicons?sz=64&domain=${new URL(tab.url).hostname}` : tab.favIconUrl} alt="source" width={512} height={512} className='w-3 aspect-square object-contain' />
                         <p className='truncate text-nowrap'>{new URL(tab.url).hostname}</p>
                     </div>
                     <p className='truncate text-xs font-semibold  text-nowrap'>{tab.mediaTitle || tab.title}</p>
