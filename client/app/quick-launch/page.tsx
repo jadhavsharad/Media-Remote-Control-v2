@@ -17,6 +17,7 @@ const apps = [
   { name: "jio saavn", url: "https://www.jiosaavn.com", supported: true, },
   { name: "amazon music", url: "https://music.amazon.com", supported: false, },
   { name: "netflix", url: "https://www.netflix.com", supported: true, },
+  { name: "apple tv", url: "https://tv.apple.com", supported: true },
   { name: "prime video", url: "https://www.primevideo.com", supported: true, },
   { name: "hotstar", url: "https://www.hotstar.com", supported: true, },
   { name: "sony liv", url: "https://www.sonyliv.com", supported: true, },
