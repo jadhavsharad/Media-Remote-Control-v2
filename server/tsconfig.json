@@ -7,8 +7,8 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    // "module": "nodenext",
-    // "target": "esnext",
+    "module": "nodenext",
+    "target": "esnext",
     // "types": [],
     // For nodejs:
     "lib": ["esnext"],
@@ -34,14 +34,13 @@
 
     // Recommended Options
     "strict": true,
-    "jsx": "react-jsx",
+
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
-    // "module": "commonjs",
-    // "target": "es2022",
+
     "esModuleInterop": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "build"]
 }

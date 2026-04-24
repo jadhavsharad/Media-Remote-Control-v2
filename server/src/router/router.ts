@@ -1,9 +1,9 @@
-import logger from "../config/logger";
-import constants from "../config/constants";
-import validator from "../validators/validator";
-import Socket, { SocketMeta } from "../socket/socket";
-import { handleAuth } from "../auth/auth.handler";
-import type { Store } from "../store/store";
+import logger from "../config/logger.js";
+import constants from "../config/constants.js";
+import validator from "../validators/validator.js";
+import Socket, { SocketMeta } from "../socket/socket.js";
+import { handleAuth } from "../auth/auth.handler.js";
+import type { Store } from "../store/store.js";
 
 const router = Object.freeze({
   handle: async (ws: WebSocket, message: string, store: Store) => {
@@ -11,12 +11,12 @@ const router = Object.freeze({
     try {
       msg = JSON.parse(message);
     } catch {
-      logger.error("Invalid JSON");
+      logger.debug("Invalid JSON");
       return;
     }
 
     if (!validator.isValidMessage(msg)) {
-      logger.error("Invalid message type");
+      logger.debug("Invalid message type");
       return;
     }
 
@@ -24,12 +24,12 @@ const router = Object.freeze({
 
     const meta = Socket.metadata(ws);
     if (validator.isRateLimited(meta)) {
-      logger.warn(`Rate limiting for socket ${meta.socketId}`);
+      logger.debug(`Rate limiting for socket`);
       return;
     }
 
     if (!validator.isSessionValid(ws, meta, store)) {
-      logger.warn("Session integrity check failed");
+      logger.debug("Session integrity check failed");
       return;
     }
 

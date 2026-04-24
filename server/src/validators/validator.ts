@@ -1,8 +1,8 @@
-import constants from "../config/constants";
-import config from "../config/config";
-import Socket from "../socket/socket";
-import type { SocketMeta } from "../socket/socket";
-import type { Store } from "../store/store";
+import constants from "../config/constants.js";
+import config from "../config/config.js";
+import Socket from "../socket/socket.js";
+import type { SocketMeta } from "../socket/socket.js";
+import type { Store } from "../store/store.js";
 
 
 function collectTypes(obj: Record<string, unknown>): string[] {

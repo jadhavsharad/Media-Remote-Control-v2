@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import config from "../config/config";
+import config from "../config/config.js";
 
 // --- Types ---
 

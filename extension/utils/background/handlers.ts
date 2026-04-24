@@ -61,7 +61,7 @@ export const receive = {
           console.debug("Remote is not registered for this session")
           return;
         }
-        
+
         if (msg.invalidateCode) {
           await pairingKey.removeValue()
           await pairingKeyExpiry.removeValue()

@@ -1,5 +1,5 @@
-import logger from "../config/logger";
-import utils from "../shared/utils";
+import logger from "../config/logger.js";
+import utils from "../shared/utils.js";
 
 interface Base {
   socketId: string;
@@ -52,7 +52,7 @@ const Socket = Object.freeze({
     try {
       ws.send(JSON.stringify({ ...payload, timestamp: utils.now() }));
     } catch (error) {
-      logger.error({ error }, "Failed to send message");
+      logger.debug({ error }, "Failed to send message");
     }
   },
 

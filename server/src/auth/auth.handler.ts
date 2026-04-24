@@ -1,9 +1,9 @@
-import Socket from "../socket/socket";
-import constants from "../config/constants";
-import config from "../config/config";
-import utils from "../shared/utils";
-import logger from "../config/logger";
-import type { Store, SessionData } from "../store/store";
+import Socket from "../socket/socket.js";
+import constants from "../config/constants.js";
+import config from "../config/config.js";
+import utils from "../shared/utils.js";
+import logger from "../config/logger.js";
+import type { Store, SessionData } from "../store/store.js";
 
 const pairCodeRegex = /^[A-Z2-9]{6}$/;
 const maxFieldLength = 64;
@@ -27,7 +27,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
     const info = msg.platformInfo as { os: string; browser: string; extensionVersion: string };
     if (!info || !isNonEmptyString(info.os) || !isNonEmptyString(info.browser) || !isNonEmptyString(info.extensionVersion)) {
       Socket.terminate(ws);
-      logger.warn("Host register missing or invalid platformInfo");
+      logger.debug("Host register missing or invalid platformInfo");
       return true;
     }
     let session: SessionData | undefined;
@@ -41,7 +41,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
         const existingHost = store.getHostSocket(sessionId);
         if (existingHost && existingHost !== ws) {
           Socket.close(existingHost, 4000, "Session superseded");
-          logger.warn(`Closed ghost host for ${sessionId}`);
+          logger.debug(`Closed ghost host for ${sessionId}`);
         }
         store.setHost(sessionId, meta.socketId);
         hostToken = existingHostToken;
@@ -92,7 +92,7 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
   if (msg.type === constants.auth.exchangePairKey) {
     if (meta.role !== null) {
       Socket.send(ws, { type: constants.auth.pairFailed, message: "Already authenticated socket attempting to pair, please refresh page" });
-      logger.warn("Already authenticated socket attempting to pair");
+      logger.debug("Already authenticated socket attempting to pair");
       return true;
     }
 
@@ -100,27 +100,27 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
 
     if (!isNonEmptyString(code) || !pairCodeRegex.test(code)) {
       Socket.send(ws, { type: constants.auth.pairFailed, message: "Invalid pair code format, please try again" });
-      logger.warn("Invalid pair code format");
+      logger.debug("Invalid pair code format");
       return true;
     }
 
     if (!isNonEmptyString(modelName) || !isNonEmptyString(platform) || !isNonEmptyString(browser)) {
       Socket.send(ws, { type: constants.auth.pairFailed, message: "Invalid device info fields, please try again" });
-      logger.warn("Invalid device info fields");
+      logger.debug("Invalid device info fields");
       return true;
     }
 
     const sessionId = store.resolvePairCode(code);
     if (!sessionId) {
       Socket.send(ws, { type: constants.auth.pairFailed, message: "Invalid pair code, please try again" });
-      logger.warn("Invalid pair code");
+      logger.debug("Invalid pair code");
       return true;
     }
 
     const session = await store.getSession(sessionId);
     if (!session) {
       Socket.send(ws, { type: constants.auth.pairFailed, message: "Session not found, please try valid session." });
-      logger.warn("Session not found");
+      logger.debug("Session not found");
       return true;
     }
 
@@ -156,34 +156,34 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
   // --- SESSION VALIDATION (Remote reconnecting) ---
   if (msg.type === constants.auth.validateSession) {
     if (meta.role === constants.role.host) {
-      logger.warn("Host socket attempting session validation as remote");
+      logger.debug("Host socket attempting session validation as remote");
       return true;
     }
 
     const remoteToken = msg.remoteToken;
     if (!isNonEmptyString(remoteToken)) {
       Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Invalid remoteToken, please try again" });
-      logger.warn("Invalid remoteToken");
+      logger.debug("Invalid remoteToken");
       return true;
     }
 
     if (!isNonEmptyString(msg.modelName as unknown) || !isNonEmptyString(msg.platform as unknown) || !isNonEmptyString(msg.browser as unknown)) {
       Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Invalid device info in session validation, please try again" });
-      logger.warn("Invalid device info in session validation");
+      logger.debug("Invalid device info in session validation");
       return true;
     }
 
     const identity = await store.getRemote(remoteToken);
     if (!identity || t > Number(identity.expiresAt) || (msg.modelName !== identity.modelName || msg.platform !== identity.platform || msg.browser !== identity.browser)) {
       Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Session invalid, please try again" });
-      logger.warn("Session invalid");
+      logger.debug("Session invalid");
       return true;
     }
 
     const session = await store.getSession(identity.sessionId);
     if (!session) {
       Socket.send(ws, { type: constants.auth.sessionInvalid, message: "Session invalid, please try again" });
-      logger.warn("Session invalid — session not found");
+      logger.debug("Session invalid — session not found");
       return true;
     }
 
@@ -204,13 +204,13 @@ async function handleAuth(ws: WebSocket, msg: Record<string, unknown>, store: St
 
   if (msg.type === constants.auth.kickRemote) {
     if (meta.role !== constants.role.host) {
-      logger.warn("Non-host attempting to kick remote");
+      logger.debug("Non-host attempting to kick remote");
       return true;
     }
 
     const remoteId = msg.remoteId;
     if (!isNonEmptyString(remoteId)) {
-      logger.warn("Invalid remoteId in kick request");
+      logger.debug("Invalid remoteId in kick request");
       return true;
     }
 
@@ -238,7 +238,7 @@ async function attachRemote(ws: WebSocket, identity: { id: string; sessionId: st
   const existingWs = store.getRemoteSocket(sessionId, identity.id);
   if (existingWs && existingWs !== ws) {
     Socket.close(existingWs, 4000, "Session superseded");
-    logger.warn(`Closed ghost remote for ${sessionId}`);
+    logger.debug(`Closed ghost remote for ${sessionId}`);
   }
 
   Socket.setMeta(ws, {

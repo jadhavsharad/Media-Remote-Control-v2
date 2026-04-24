@@ -77,9 +77,9 @@ const Page = () => {
           activeTab ?
             <div>
               <div className=" absolute saturate-200 scale-110 opacity-60 -z-10 blur-[128px]">
-                <MediaCover src={activeTab?.mediaArtwork || ""} favicon={activeTab?.favIconUrl} />
+                <MediaCover src={activeTab?.mediaArtwork || ""} />
               </div>
-              <MediaCover src={activeTab?.mediaArtwork || ""} favicon={activeTab?.favIconUrl} />
+              <MediaCover src={activeTab?.mediaArtwork || ""} favicon={activeTab?.url} />
               <Divider size="xl" />
               <MediaMetadata title={activeTab?.mediaTitle || ""} artist={activeTab?.mediaArtist || ""} album={activeTab?.mediaAlbum || ""} />
               <p className="text-xs text-center text-zinc-500 mt-2">Duration: {formatTime(totalTime)}</p>

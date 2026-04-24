@@ -32,10 +32,6 @@ const CurrentSession = ({ onNavigate }: { onNavigate: (page: string) => void }) 
     sendMessage({ channel: CHANNELS.FROM_POPUP, payload: { type: MESSAGE_TYPES.HOST_RECONNECT } });
   };
 
-  const handleResetSession = () => {
-    sendMessage({ channel: CHANNELS.FROM_POPUP, payload: { type: MESSAGE_TYPES.HOST_RESET } });
-  };
-
   const copySessionId = () => {
     if (!session) return;
     navigator.clipboard.writeText(session);
@@ -123,11 +119,6 @@ const CurrentSession = ({ onNavigate }: { onNavigate: (page: string) => void }) 
               Reconnect
             </button>
           )}
-
-          <button onClick={handleResetSession} className="cursor-pointer text-white/60 bg-white/5 rounded-lg w-full py-2 px-3 hover:bg-red-500/15 hover:text-red-400 duration-100 flex items-center gap-2" aria-label="Reset session — clears session identity and disconnects all remotes" title="Clear session and disconnect all paired remotes">
-            <LuTrash2 className="" />
-            Reset Session
-          </button>
         </div>
       </div>
 

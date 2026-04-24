@@ -198,7 +198,6 @@ const report = {
 const event = {
   playback() {
     report.Once(MEDIA_STATE.PLAYBACK, state.currentMedia?.paused ? "PAUSED" : "PLAYING")
-    event.ended();
   },
   volumechange() {
     report.Once(MEDIA_STATE.VOLUME, state.currentMedia?.volume.toFixed(1))

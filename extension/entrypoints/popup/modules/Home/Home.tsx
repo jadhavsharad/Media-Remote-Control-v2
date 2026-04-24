@@ -3,7 +3,7 @@ import { MdManageAccounts, MdWifiTethering, MdWifiTetheringOff } from "react-ico
 import { TbExternalLink } from "react-icons/tb";
 import { RiLinkM, RiRemoteControlLine } from "react-icons/ri";
 import { LuKeyRound } from "react-icons/lu";
-import { isSocketConnected } from "@/utils/storage/storage";
+import { connectedDevices, isSocketConnected } from "@/utils/storage/storage";
 import { useStorageItem } from "../../hooks/useStorageItem";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,6 +11,8 @@ const pulseRings = ["w-2/6 top-1/2 -translate-y-1/2", "w-4/6 top-1/2 -translate-
 
 const Home = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
   const [isSocketActive] = useStorageItem(isSocketConnected)
+  const [devices] = useStorageItem(connectedDevices);
+
   return (
     <>
       <div className="w-60 min-h-96 bg-linear-to-t to-sky-950 flex flex-col justify-between px-2 py-4 antialiased">
@@ -37,7 +39,7 @@ const Home = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
           </div>
           <div className="absolute -bottom-2 px-4 flex justify-between items-center w-full text-white">
             <p className="flex items-center gap-2"><RiRemoteControlLine />Remotes connected </p>
-            <p>0</p>
+            <p>{devices?.length || 0}</p>
           </div>
         </div>
 

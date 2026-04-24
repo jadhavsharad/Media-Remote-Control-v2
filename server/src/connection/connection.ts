@@ -1,8 +1,8 @@
-import Socket from "../socket/socket";
-import constants from "../config/constants";
-import utils from "../shared/utils";
-import logger from "../config/logger";
-import type { Store } from "../store/store";
+import Socket from "../socket/socket.js";
+import constants from "../config/constants.js";
+import utils from "../shared/utils.js";
+import logger from "../config/logger.js";
+import type { Store } from "../store/store.js";
 
 function ConnectionManager(store: Store) {
   return Object.freeze({
@@ -24,12 +24,12 @@ function ConnectionManager(store: Store) {
             Socket.send(remote, { type: constants.auth.hostDisconnected });
           }
         }
-        logger.warn(`Host disconnected from session ${meta.sessionId}`);
+        logger.debug(`Host disconnected from session ${meta.sessionId}`);
       }
 
       if (meta.role === "REMOTE") {
         await store.removeRemoteFromSession(meta.sessionId, meta.remoteIdentityId);
-        logger.warn(`Remote disconnected from session ${meta.sessionId}`);
+        logger.debug(`Remote disconnected from session ${meta.sessionId}`);
       }
     },
   });

@@ -2,11 +2,11 @@ import "dotenv/config";
 import fastifyWebsocket from "@fastify/websocket";
 import fastify from "fastify";
 import { Redis } from "@upstash/redis";
-import logger from "./config/logger";
-import config from "./config/config";
-import router from "./router/router";
-import createStore from "./store/store";
-import ConnectionManager from "./connection/connection";
+import logger from "./config/logger.js";
+import config from "./config/config.js";
+import router from "./router/router.js";
+import createStore from "./store/store.js";
+import ConnectionManager from "./connection/connection.js";
 
 
 async function boot() {
