@@ -28,5 +28,6 @@ export default defineBackground(() => {
   listeners.tabOnUpdated();
   listeners.tabOnRemoved();
   listeners.tabOnCreated();
+  listeners.onUpdate();
   listeners.reconciliation;
 })

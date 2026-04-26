@@ -1,7 +1,7 @@
 "use client"
 import { useCallback, useEffect, useState } from "react";
 import { useSocket } from "@/lib/websocket";
-import { auth } from "@/lib/constants";
+import { auth, extension } from "@/lib/constants";
 import PairingScreen from "./PairingScreen";
 import HostOffline from "./HostOffline";
 import { getDeviceInfo } from "@/lib/device";
@@ -15,9 +15,9 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     const [hostOnline, setHostOnline] = useState(true);
     const [pairError, setPairError] = useState<string | null>(null);
     const [isPairing, setIsPairing] = useState(false);
+    const [extensionUpdated, setExtensionUpdated] = useState(false);
 
     const handler = useCallback((msg: any) => {
-        console.log(msg)
         if (msg.type === auth.sessionValid || msg.type === auth.pairSuccess) {
             if (msg.type === auth.pairSuccess)
                 setAuth({ token: msg.remoteToken, remoteId: msg.remoteId, hostInfo: msg.hostInfo, sessionId: msg.sessionId, })
@@ -43,6 +43,12 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
         }
         if (msg.type === auth.hostReconnected) {
             setHostOnline(true);
+        }
+        if (msg.type === extension.configuration) {
+            setExtensionUpdated(true);
+            setTimeout(() => {
+                setExtensionUpdated(false);
+            }, 3000);
         }
     }, [setAuth, clearAuth]);
 
@@ -72,7 +78,20 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
     if (!hostOnline) return <HostOffline />;
 
-    if (isAuthenticated) { return <><SocketListener />{children}</>; }
+    if (isAuthenticated) { 
+        return (
+            <>
+                <SocketListener />
+                {extensionUpdated ? (
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-sky-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-sm animate-in fade-in slide-in-from-top-4 duration-300">
+                        Extension Updated, Please wait while extension discovers media.
+                    </div>
+                ) : (
+                    children
+                )}
+            </>
+        ); 
+    }
 
     return null;
 }

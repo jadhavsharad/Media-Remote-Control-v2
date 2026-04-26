@@ -5,7 +5,9 @@
 export const sendMessage = async ({ channel, payload }: { channel: string, payload: any }) => {
   try {
     await browser.runtime.sendMessage({ channel, payload });
-  } catch (e: any) { }
+  } catch (e: any) {
+    console.debug("Error in sending message: ", e);
+   }
 }
 
 // REUSABLE FUNCTION TO RECEIVE MESSAGES FROM (SERVER, OFFSCREEN, POPUP, CONTENT SCRIPT)

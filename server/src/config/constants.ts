@@ -50,4 +50,8 @@ const role = Object.freeze({
     remote: "REMOTE" as const,
 });
 
-export default { auth, socket, media, control, role };
+const extension = Object.freeze({
+    configuration: "extension.updated"
+})
+
+export default { auth, socket, media, control, role, extension };

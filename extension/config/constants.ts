@@ -31,6 +31,9 @@ export const MESSAGE_TYPES = {
     SET: "control.set", // CHECK
     REPORT: "control.report" // CHECK
   },
+
+  configuration: "extension.updated", // CHECK
+    
 };
 
 /* -------------------- CHANNELS -------------------- */

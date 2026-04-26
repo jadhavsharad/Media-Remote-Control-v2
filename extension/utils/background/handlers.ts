@@ -8,6 +8,8 @@ import { getPlatformInfo } from "./platform";
 import { TabCache } from "../storage/tabs";
 import { mediaTab } from "@/utils/validators/validators";
 
+let wasUpdated:boolean = false;
+
 const Socket = {
   onOpen: async () => {
     isSocketConnected.setValue(true)
@@ -42,7 +44,12 @@ export const receive = {
         Socket.onClose()
         break;
       case MESSAGE_TYPES.HOST_REGISTERED:
-        await Socket.onRegistered(msg)
+        await Socket.onRegistered(msg).then(debounced(async () => {
+          if (wasUpdated) {
+            await forwardToOffscreen({ type: MESSAGE_TYPES.configuration })
+            wasUpdated = false
+          }
+        }))
         break;
       case MESSAGE_TYPES.PAIRING_KEY:
         await pairingKey.setValue(msg.code)
@@ -225,6 +232,29 @@ export const listeners = {
         Notify.created(tab.id!);
       } catch (error) {
         console.debug("Error creating tab:", error)
+      }
+    });
+  },
+
+  onUpdate: () => {
+    browser.runtime.onInstalled.addListener(async ({ reason }) => {
+      if (reason === "update") {
+        wasUpdated = true;
+        const allTabs = await browser.tabs.query({});
+        const mediaTabs = allTabs.filter((t) => mediaTab(t.url));
+
+        for (const tab of mediaTabs) {
+          if (tab.id) {
+            try {
+              await browser.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ["/content-scripts/content.js"],
+              });
+            } catch (error) {
+              console.debug(`Failed to inject content script into tab ${tab.id}:`, error);
+            }
+          }
+        }
       }
     });
   },

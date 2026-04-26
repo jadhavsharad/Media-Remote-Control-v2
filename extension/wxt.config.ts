@@ -8,7 +8,7 @@ export default defineConfig({
   manifest: {
     name: "Media Remote Control",
     permissions: ["tabs", "offscreen", 'storage', "scripting", "bookmarks"],
-    host_permissions: platforms,    
+    host_permissions: ["<all_urls>"],    
   },
   webExt: defineWebExtConfig({
     disabled: true,

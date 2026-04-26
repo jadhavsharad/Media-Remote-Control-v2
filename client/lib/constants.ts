@@ -32,7 +32,11 @@ export const media = Object.freeze({
         title: "title",
         bookmark:"bookmark"
     },
-    session:{
-        launchApp:"session.new_tab"
+    session: {
+        launchApp: "session.new_tab"
     }
+})
+
+export const extension = Object.freeze({
+    configuration: "extension.updated"
 })
