@@ -83,7 +83,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
             <>
                 <SocketListener />
                 {extensionUpdated ? (
-                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-sky-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-sm animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-sky-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-sm animate-in fade-in slide-in-from-top-4 duration-300 min-w-sm">
                         Extension Updated, Please wait while extension discovers media.
                     </div>
                 ) : (
