@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const pulseRings = ["w-2/6 top-1/2 -translate-y-1/2", "w-4/6 top-1/2 -translate-y-1/2", "w-full top-0", "w-full scale-135 top-0",];
 
+const remoteUrl = import.meta.env.VITE_REMOTE_URL;
+
 const Home = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
   const [isSocketActive] = useStorageItem(isSocketConnected)
   const [devices] = useStorageItem(connectedDevices);
@@ -47,7 +49,7 @@ const Home = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
           <button disabled={!isSocketActive} className="disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white bg-white/10 rounded-lg w-full py-2 px-4 hover:bg-white/20 duration-100 flex items-center justify-start gap-2 " onClick={() => onNavigate('PAIRING_CODE')}>  <LuKeyRound />Generate Pairing Key</button>
           <button disabled={!isSocketActive} className="disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white bg-white/10 rounded-lg w-full py-2 px-4 hover:bg-white/20 duration-100 flex items-center justify-start gap-2" onClick={() => onNavigate('PAIRED_DEVICES')}>  <RiLinkM />View Paired Remotes</button>
           <button className="disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white bg-white/10 rounded-lg w-full py-2 px-4 hover:bg-white/20 duration-100 flex items-center justify-start gap-2" onClick={() => onNavigate('CURRENT_SESSION')}> <MdManageAccounts />Manage Current Session</button>
-          <a href="" target="_blank" rel="noopener noreferrer" className="cursor-pointer text-white bg-white/10 rounded-lg w-full py-2 px-4 hover:bg-white/20 duration-100 flex items-center justify-between gap-2"><span className="flex items-center gap-2"><RiRemoteControlLine />Open Remote</span> <TbExternalLink /></a>
+          <a href={remoteUrl} target="_blank" rel="noopener noreferrer" className="cursor-pointer text-white bg-white/10 rounded-lg w-full py-2 px-4 hover:bg-white/20 duration-100 flex items-center justify-between gap-2"><span className="flex items-center gap-2"><RiRemoteControlLine />Open Remote</span> <TbExternalLink /></a>
         </div>
 
       </div>

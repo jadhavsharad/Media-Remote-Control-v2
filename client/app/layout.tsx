@@ -11,6 +11,9 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: "Media Remote Control",
   description: "Control your media with ease",
+  icons: {
+    icon: "/favicon.png"
+  }
 };
 
 export default function RootLayout({
