@@ -10,17 +10,19 @@ import Image from 'next/image'
 const apps = [
 
   { name: "youtube", url: "https://www.youtube.com", supported: true, },
-  { name: "vimeo", url: "https://vimeo.com", supported: true, },
   { name: "youtube music", url: "https://music.youtube.com", supported: true, },
+  { name: "netflix", url: "https://www.netflix.com", supported: true, },
+  { name: "plex", url: "https://plex.tv", supported: true, },
+  { name: "hotstar", url: "https://www.hotstar.com", supported: true, },
+  { name: "apple tv", url: "https://tv.apple.com", supported: true },
+  { name: "mx player", url: "https://mxplayer.in", supported: true, },
+  { name: "prime video", url: "https://www.primevideo.com", supported: true, },
+  { name: "sony liv", url: "https://www.sonyliv.com", supported: true, },
   { name: "apple music", url: "https://music.apple.com", supported: true, },
   { name: "spotify", url: "https://open.spotify.com", supported: false, },
-  { name: "jio saavn", url: "https://www.jiosaavn.com", supported: true, },
   { name: "amazon music", url: "https://music.amazon.com", supported: false, },
-  { name: "netflix", url: "https://www.netflix.com", supported: true, },
-  { name: "apple tv", url: "https://tv.apple.com", supported: true },
-  { name: "prime video", url: "https://www.primevideo.com", supported: true, },
-  { name: "hotstar", url: "https://www.hotstar.com", supported: true, },
-  { name: "sony liv", url: "https://www.sonyliv.com", supported: true, },
+  { name: "jio saavn", url: "https://www.jiosaavn.com", supported: true, },
+  { name: "vimeo", url: "https://vimeo.com", supported: true, },
 ]
 
 

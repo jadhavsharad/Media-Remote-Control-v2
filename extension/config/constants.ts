@@ -67,6 +67,8 @@ export const supportedPlatforms = [
   "jiosaavn.com",
   "apple.com",
   "spotify.com",
+  "plex.tv",
+  "mxplayer.in",
 ]
 
 export const platforms = supportedPlatforms.map(
