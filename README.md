@@ -1,7 +1,8 @@
 <div align="center">
-  <img src="https://img.icons8.com/color/144/000000/remote-control.png" alt="Logo" width="100"/>
+  <img width="128" alt="128" src="https://github.com/user-attachments/assets/7aea5e61-fbf8-4cb8-8942-9bf2e17754dc" />
+
   
-  # Media Remote Control 🎮
+  # Media Remote Control
   
   **Control your browser's media seamlessly from any device.**
   
