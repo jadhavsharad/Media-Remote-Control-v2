@@ -1,6 +1,6 @@
 {
   "name": "media-remote-control",
-  "description": "manifest.json description",
+  "description": "Control your browser media with ease.",
   "private": true,
   "version": "2.0",
   "type": "module",
