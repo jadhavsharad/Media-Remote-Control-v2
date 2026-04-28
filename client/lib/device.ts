@@ -2,9 +2,9 @@ const getDeviceModel = async () => {
   const nav = navigator as any;
   if (nav.userAgentData) {
     const data = await nav.userAgentData.getHighEntropyValues(["model"]);
-    return data.model || "Unknown";
+    return data.model;
   }
-  return null;
+  return "Unknown";
 }
 
 const getPlatform = async () => {
@@ -13,7 +13,7 @@ const getPlatform = async () => {
     const data = await nav.userAgentData.getHighEntropyValues(["platform"]);
     return data.platform || nav.userAgentData.platform || "Unknown";
   }
-  return null;
+  return "Unknown";
 }
 
 const getBrowser = () => {
@@ -22,7 +22,7 @@ const getBrowser = () => {
     const brandObj = nav.userAgentData.brands.at(-1);
     return brandObj?.brand || "Unknown";
   }
-  return null;
+  return "Unknown";
 }
 
 export const getDeviceInfo = async () => {
