@@ -69,6 +69,8 @@ const PairingScreen = ({ error, onClearError, isPairing = false, onPairingStart 
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <small className="text-center my-4 text-zinc-500 font-semibold">If you are using old version of extension, please update it.</small>
         </div>
     )
 }
